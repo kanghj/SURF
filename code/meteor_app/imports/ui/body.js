@@ -3028,7 +3028,7 @@ Template.body.helpers({
     return roleList;
   },
 
-  clusteredDiscriminativeSubgraphs() {
+  discriminativeSubgraphsSkeleton() {
     var subgraphs = Subgraphs.find({ '$and' : 
       [
         {'discriminative': true},  
@@ -3041,7 +3041,7 @@ Template.body.helpers({
     var hastoolFeedback = {};
     var headerCount = 0;
 
-    console.log('[clusteredDiscriminativeSubgraphs] subgraphs')
+    console.log('[discriminativeSubgraphsSkeleton] subgraphs')
     console.log(subgraphs);
 
     // sort the subgraphs. subgraphs with '->' are sorted first
@@ -3148,7 +3148,7 @@ Template.body.helpers({
         return elementRoles[element.node];
       })
       .forEach(function(element) {
-        console.log('[clusteredDiscriminativeSubgraphs] going through listOfElements', element);
+        console.log('[discriminativeSubgraphsSkeleton] going through listOfElements', element);
         var roles = elementRoles[element.node];
         roles.forEach(function(role) {
 
@@ -3169,7 +3169,7 @@ Template.body.helpers({
           exampleClustersByRole[role].push(element);
         });
       });
-    console.log('[clusteredDiscriminativeSubgraphs] exampleClustersByRole');
+    console.log('[discriminativeSubgraphsSkeleton] exampleClustersByRole');
     console.log(exampleClustersByRole);
 
     // go through method and delcaration, removing a node if they appear in otherNodes in parameter1
@@ -3246,7 +3246,7 @@ Template.body.helpers({
       
     }
 
-    console.log('[clusteredDiscriminativeSubgraphs] returning', roleList, 'roleList')
+    console.log('[discriminativeSubgraphsSkeleton] returning', roleList, 'roleList')
     return roleList;
       
   },

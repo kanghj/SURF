@@ -347,11 +347,11 @@
           <!-- {{#each topologicalSortNodesOfMinedDiscriminativeSubgraphs}} -->
 
 
-          {{#each clusteredDiscriminativeSubgraphs}}
+          {{#each discriminativeSubgraphsSkeleton}}
           
             <div class="block-level hideRow-100" style="padding-top:0">
               <!-- <div class="col-md-1"></div> -->
-              {{> discriminativePatternByRole}}
+              {{> discriminativeFeatureByRole}}
 
             </div>
           {{/each}}  
@@ -920,13 +920,13 @@
 
 
 
-<template name="discriminativePatternByRole">
+<template name="discriminativeFeatureByRole">
   {{{discriminativeRolePrefix this}}}
   <div class="example-cluster example-cluster-{{role}}" id="example-cluster-{{role}}" data-cluster="{{role}}" style="height:auto; ">
     {{#if cluster}}
       {{#each cluster}}
         
-        {{> discriminativePattern}}
+        {{> discriminativeFeature}}
       {{/each}}
     {{else}}
     <div class="row block-level hideRow-100" style="padding-left:0; margin-left:0; margin-bottom: 0;">
@@ -946,7 +946,7 @@
   </div>
 </template>
 
-<template name="discriminativePattern">
+<template name="discriminativeFeature">
   <div class="row block-level hideRow-100" style="padding-left:0; margin-left:0; margin-bottom: 0;">
 
     <code class="border_{{role}}" data-toggle="collapse" data-target="#example-cluster-{{headerCount}}-{{role}}" 
