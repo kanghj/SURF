@@ -7,7 +7,7 @@ import shutil
 
 
 cwd = os.getcwd()
-project_path = cwd.split('Surf')[0] 
+project_path = cwd.split('SURF')[0] 
 
 
 
@@ -87,16 +87,16 @@ with open('cryptoapi_bench_random2.json', 'w') as f:
 print('wrote to the present directory. Move it to where Active learning interface expects it to be.')
 
 
-# next, move the source files into /Users/.../repos/active_learning_interface/Surf/code/meteor_app/full_source/cryptoapi_bench_SecureRandom
-if not os.path.exists(project_path + '/Surf/code/meteor_app/full_source/cryptoapi_bench_SecureRandom'):
-    os.mkdir(project_path + '/Surf/code/meteor_app/full_source/cryptoapi_bench_SecureRandom')
+# next, move the source files into /Users/.../repos/active_learning_interface/SURF/code/meteor_app/full_source/cryptoapi_bench_SecureRandom
+if not os.path.exists(project_path + '/SURF/code/meteor_app/full_source/cryptoapi_bench_SecureRandom'):
+    os.mkdir(project_path + '/SURF/code/meteor_app/full_source/cryptoapi_bench_SecureRandom')
 for java_file in json.loads(json_obj):
     # print(java_file)
     example_id = java_file['exampleID']
     filepath = java_file['filepath']
-    if not os.path.exists(project_path + '/Surf/code/meteor_app/full_source/cryptoapi_bench_SecureRandom/' + str(example_id)):
-        os.mkdir(project_path + '/Surf/code/meteor_app/full_source/cryptoapi_bench_SecureRandom/' + str(example_id))
-    shutil.copyfile(filepath, project_path + '/Surf/code/meteor_app/full_source/cryptoapi_bench_SecureRandom/' + str(example_id) + '/' + os.path.basename(filepath))
+    if not os.path.exists(project_path + '/SURF/code/meteor_app/full_source/cryptoapi_bench_SecureRandom/' + str(example_id)):
+        os.mkdir(project_path + '/SURF/code/meteor_app/full_source/cryptoapi_bench_SecureRandom/' + str(example_id))
+    shutil.copyfile(filepath, project_path + '/SURF/code/meteor_app/full_source/cryptoapi_bench_SecureRandom/' + str(example_id) + '/' + os.path.basename(filepath))
 
-print('wrote to ' + project_path + '/Surf/code/meteor_app/full_source/cryptoapi_bench_SecureRandom')
+print('wrote to ' + project_path + '/SURF/code/meteor_app/full_source/cryptoapi_bench_SecureRandom')
 print('done')

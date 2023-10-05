@@ -31,7 +31,7 @@ graphs_to_mine = [str(graph_id) for graph_id in element_id_to_graph_id.values()]
 label_counts = {'+': 0, '-': 0, 'U' : 0}
 
 cwd = os.getcwd()
-project_path = cwd.split('Surf')[0] + 'Surf/'
+project_path = cwd.split('SURF')[0] + 'SURF/'
 
 if request_counter >= 1:
     time_counter = 0

@@ -7,7 +7,7 @@ import shutil
 
 
 cwd = os.getcwd()
-project_path = cwd.split('Surf')[0] 
+project_path = cwd.split('SURF')[0] 
 
 
 def get_all_java_files():
@@ -91,17 +91,17 @@ with open('cryptoapi_bench_digest2.json', 'w') as f:
 print('wrote to the present directory. Move it to where Active learning interface expects it to be.')
 
 
-# next, move the source files into /Users/.../repos/active_learning_interface/Surf/code/meteor_app/full_source/cryptoapi_bench_MessageDigest
-if not os.path.exists(project_path  +'/Surf/code/meteor_app/full_source/cryptoapi_bench_MessageDigest'):
-    os.mkdir(project_path  +'/Surf/code/meteor_app/full_source/cryptoapi_bench_MessageDigest')
+# next, move the source files into /Users/.../repos/active_learning_interface/SURF/code/meteor_app/full_source/cryptoapi_bench_MessageDigest
+if not os.path.exists(project_path  +'/SURF/code/meteor_app/full_source/cryptoapi_bench_MessageDigest'):
+    os.mkdir(project_path  +'/SURF/code/meteor_app/full_source/cryptoapi_bench_MessageDigest')
 for java_file in json.loads(json_obj):
     # print(java_file)
     example_id = java_file['exampleID']
     filepath = java_file['filepath']
     # print(filepath)
-    if not os.path.exists(project_path  +'/Surf/code/meteor_app/full_source/cryptoapi_bench_MessageDigest/' + str(example_id)):
-        os.mkdir(project_path  +'/Surf/code/meteor_app/full_source/cryptoapi_bench_MessageDigest/' + str(example_id))
-    shutil.copyfile(filepath, project_path  +'/Surf/code/meteor_app/full_source/cryptoapi_bench_MessageDigest/' + str(example_id) + '/' + os.path.basename(filepath))
+    if not os.path.exists(project_path  +'/SURF/code/meteor_app/full_source/cryptoapi_bench_MessageDigest/' + str(example_id)):
+        os.mkdir(project_path  +'/SURF/code/meteor_app/full_source/cryptoapi_bench_MessageDigest/' + str(example_id))
+    shutil.copyfile(filepath, project_path  +'/SURF/code/meteor_app/full_source/cryptoapi_bench_MessageDigest/' + str(example_id) + '/' + os.path.basename(filepath))
 
-print('wrote to ' + project_path  +'/Surf/code/meteor_app/full_source/cryptoapi_bench_MessageDigest')
+print('wrote to ' + project_path  +'/SURF/code/meteor_app/full_source/cryptoapi_bench_MessageDigest')
 print('done')

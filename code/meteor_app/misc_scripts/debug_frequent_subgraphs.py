@@ -8,7 +8,7 @@ request_counter = int(sys.argv[2])
 API = sys.argv[3]
 
 cwd = os.getcwd()
-project_path = cwd.split('Surf')[0] + 'Surf/'
+project_path = cwd.split('SURF')[0] + 'SURF/'
 
 def guess_path_to_best_subgraph_file(API:str) -> Path:
     base_dir = project_path + "code/graphs/"

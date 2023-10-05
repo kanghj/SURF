@@ -26,7 +26,7 @@ var API = "javax.crypto.Cipher__init";
 
 // get current path
 var path = Npm.require('path');
-var projectPath = path.resolve('.').split('Surf')[0] + 'Surf/';
+var projectPath = path.resolve('.').split('SURF')[0] + 'SURF/';
 var appPath = projectPath + "/code/meteor_app/";
 
 // var APIshortName = "random";

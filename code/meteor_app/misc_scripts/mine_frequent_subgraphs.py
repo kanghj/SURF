@@ -9,7 +9,7 @@ API = sys.argv[3]
 focus_node = sys.argv[4]
 
 cwd = os.getcwd()
-project_path = cwd.split('Surf')[0] + 'Surf/'
+project_path = cwd.split('SURF')[0] + 'SURF/'
 
 def path_to_vert_map_file(API:str) -> str:
     base_dir = project_path + "code/graphs/"
