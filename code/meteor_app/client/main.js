@@ -14,7 +14,6 @@ var APIfocalNode = "Cipher.getInstance()";
 // var APIfocalNode = "SecureRandom.<init>";
 
 
-var isBaseline = false; // false for the actual tool, true to show all examples
 
 Meteor.startup(function(){
     $.getScript('js/tutorons-library.js', function(){
@@ -61,12 +60,8 @@ Meteor.startup(function(){
     console.log('session',Session.keys);
 
     Session.set('isBaseline', isBaseline);
-    if (!isBaseline) {
-        $('.open-label-query-examples-modal').click();
-    } else {
-        
-        $('.open-label-query-examples-modal').click();
-    }
+   
+    $('.open-label-query-examples-modal').click();
       
         
 });

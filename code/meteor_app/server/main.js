@@ -970,26 +970,26 @@ var fs = Npm.require('fs');
 
 
 var getOpenaiCompletion = function(API) {
-  // const completion = openai.createCompletion({
-  //   model: "text-davinci-003",
-  //   prompt: "Construct an example of using  " + API + " in Java. Ensure that the example usage shows only a single, self-contained method (i.e., no class), and does not suffer from bugs or vulnerabilities. Start your response with 'public static void ' ",
-  //   max_tokens: 500,
-  // });
-  // completion.then(function(result) {
+  const completion = openai.createCompletion({
+    model: "text-davinci-003",
+    prompt: "Construct an example of using  " + API + " in Java. Ensure that the example usage shows only a single, self-contained method (i.e., no class), and does not suffer from bugs or vulnerabilities. Start your response with 'public static void ' ",
+    max_tokens: 500,
+  });
+  completion.then(function(result) {
     
-  //   console.log("openai result")
-  //   console.log(result);
-  //   console.log(result.data.choices[0].text);
+    console.log("openai result")
+    console.log(result);
+    console.log(result.data.choices[0].text);
 
-  //   var example = result.data.choices[0].text;
-  //   Queries.insert({
-  //     'rawCode': example,
-  //   });
+    var example = result.data.choices[0].text;
+    Queries.insert({
+      'rawCode': example,
+    });
       
 
-  // }).catch(function(err) {
-  //   console.error(err);
-  // });
+  }).catch(function(err) {
+    console.error(err);
+  });
 
   // const completion2 = openai.createCompletion({
   //   model: "text-davinci-003",
