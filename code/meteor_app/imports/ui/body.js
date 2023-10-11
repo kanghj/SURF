@@ -3967,6 +3967,12 @@ Template.body.events({
     }
     hideLoadingText();
   },
+  'click .openai-infer-pattern-btn' (event, instance) {
+    inferPatterns();
+
+    $("#openaiExamplesModal").modal('hide');
+    
+  },
   'click .view-baseline-matching-examples' (event, instance) {
     // var subgraphs = Subgraphs.find({ '$and' : 
     //   [

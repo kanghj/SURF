@@ -1088,6 +1088,7 @@ var shellOutToCreateNewExample = function(text, label, dataset, view, keyword) {
 
   command = spawn('java',[ '-jar', appPath + "misc_scripts/graph_convertor.jar" ,
     API, projectPath + "/code/graphs/", projectPath + "/code/graphs/", label]);
+  console.log('command = ' + command + ' ' + API + ' ' + projectPath + "/code/graphs/" + ' ' + projectPath + "/code/graphs/" + ' ' + label);
 
   command.stdout.on('data',  function (data) {
       console.log('[shellOutToCreateNewExample stdout: ' + data);
@@ -1101,7 +1102,7 @@ var shellOutToCreateNewExample = function(text, label, dataset, view, keyword) {
 
     // read the file,projectPath +  /code/graphs/java.security.MessageDigest__digest_test_formatted.txt, and find largest graph id
     var graphId = 0;
-    var file = fs.readFileSync(projectPath + '/code/graphs/' + API + '_formatted.txt', 'utf8');
+    var file = fs.readFileSync(projectPath + '/code/graphs/' + API + '_test_formatted.txt', 'utf8');
     var lines = file.split('\n');
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i];
@@ -1164,7 +1165,9 @@ var shellOutToCreateNewExample = function(text, label, dataset, view, keyword) {
       elementIdToGraphId[example.exampleID] = example.graphId;
     });
 
+    // graphId, labels, elementIdToGraphId, focalNode, nodesToInclude, eraseOld, showImmediately
     // shellOutToMineSubgraphs(-1, null, elementIdToGraphId, false, "---dummy---", false);
+    shellOutToMineSubgraphs(-1, label, elementIdToGraphId, "---dummy----", [], false, false);
 
     }
   ));
