@@ -970,15 +970,28 @@ var fs = Npm.require('fs');
 
 
 var getOpenaiCompletion = function(API) {
+
+  // get the current skeleton
+
+  var subgraphAsText = Subgraphs.find( { '$or' : [{discriminative: true}] }).map(function(subgraph) {
+    var text = '';
+    subgraph.edges.forEach(function(edge) {
+      if (edge.to == '') return;
+      text += edge.from + ' -' + edge.label + '-> ' + edge.to + ', ';
+    });
+    return text;
+  }).join('\n');
+  
+
   const completion = openai.createCompletion({
     model: "text-davinci-003",
-    prompt: "Construct an example of using  " + API + " in Java. Ensure that the example usage shows only a single, self-contained method (i.e., no class), and does not suffer from bugs or vulnerabilities. Start your response with 'public static void ' ",
+    prompt: "Construct an example of using  " + API + " in Java. Ensure that the example usage shows only a single, self-contained method (i.e., no class), and does not suffer from bugs or vulnerabilities. Start your response with 'public static void '. We will like to find usages containing the following code elements:" + subgraphAsText,
     max_tokens: 500,
   });
   completion.then(function(result) {
     
     console.log("openai result")
-    console.log(result);
+    // console.log(result);
     console.log(result.data.choices[0].text);
 
     var example = result.data.choices[0].text;
@@ -1415,6 +1428,7 @@ Meteor.methods({
       var target = edge.to;
       
       console.log('infer patterns:: one subgraph edge = ' + edge.rawText);
+
 
       var adjlist = {};
       var edges = [];
