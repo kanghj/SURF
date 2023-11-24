@@ -9,6 +9,8 @@ import { Bags } from '../api/bags.js';
 
 import { Queries } from '../api/queries.js';
 
+import { Config } from '../api/config.js';
+
 import Pycollections from 'pycollections';
 
 import html2canvas from 'html2canvas';
@@ -22,6 +24,7 @@ import './body.html';
 
 window.Subgraphs  = Subgraphs;
 window.Examples = Examples;
+window.Config = Config;
 window.TestExamples = TestExamples;
 
 var getAllSubgraphs = function(isDiscriminative) {
@@ -50,30 +53,64 @@ var getAllSubgraphs = function(isDiscriminative) {
 }
 
 var exampleTotal = function(){
-  // console.log('exampleTotal',Examples.find({dataset: Session.get('dataset')}).count());
-  return fetchShortestExamples({dataset: Session.get('dataset')}).count();
+  // console.log('exampleTotal',Examples.find({dataset: getDataset()}).count());
+  return fetchShortestExamples({dataset: getDataset()}).count();
   // return fetchExamples(selector).count();
 }
 
 
 var optimalLabellingTotal = function() {
-  return fetchShortestExamples({dataset: Session.get('dataset'), label: { '$in' : ['positive', 'negative']}}).count();
+  return fetchShortestExamples({dataset: getDataset(), label: { '$in' : ['positive', 'negative']}}).count();
 }
+
+var getFocalNode = function() {
+  var config = Config.findOne({});
+  var API = config.API;
+  var APIfocalNode;
+  if (API.includes('javax.crypto.Cipher__init')) {
+
+      APIfocalNode = "Cipher.getInstance()";
+  } else if (API.includes('java.security.MessageDigest__digest')) {
+      APIfocalNode = "MessageDigest.getInstance()";
+    } else if (API.includes('java.security.SecureRandom__Key')) {
+      APIfocalNode = "SecureRandom.<init>";
+  } 
+  return APIfocalNode;
+}
+
+var getFocalAPI = function() {
+  var config = Config.findOne({});
+  return config.API.split('.')[2] + '()';
+}
+
+var getDataset = function() {
+  var config = Config.findOne({});
+  return config.APIshortName;
+}
+
+var getAPI = function() {
+  var config = Config.findOne({});
+  return config.API;
+}
+
+
+
+
 
 var fetchExamples = function(selector){
   if (_.isEmpty(selector)){
-    selector = {'dataset': Session.get('dataset')};
+    selector = {'dataset': getDataset()};
   } else {
-    selector['dataset'] = Session.get('dataset');
+    selector['dataset'] = getDataset();
   }
   return fetchShortestExamples(selector).fetch();
 }
 
 var fetchLabelledExamples = function(selector, label){
   if (_.isEmpty(selector)){
-    selector = {'dataset': Session.get('dataset')};
+    selector = {'dataset': getDataset()};
   } else {
-    selector['dataset'] = Session.get('dataset');
+    selector['dataset'] = getDataset();
   }
   selector['label'] = { '$in' : [label]};
   return fetchShortestExamples(selector).fetch();
@@ -81,9 +118,9 @@ var fetchLabelledExamples = function(selector, label){
 
 var fetchAndCountExamples = function(selector){
   if (_.isEmpty(selector)){
-    selector = {'dataset': Session.get('dataset')};
+    selector = {'dataset': getDataset()};
   } else {
-    selector['dataset'] = Session.get('dataset');
+    selector['dataset'] = getDataset();
   }
   // filter out examples without a corresponding graph
   // if (!selector['$and']){
@@ -96,10 +133,10 @@ var fetchAndCountExamples = function(selector){
 var fetchAndCountLabelledExamples = function(selector, label) {
   var isEmptySelector = false;
   if (_.isEmpty(selector)){
-    selector = {'dataset': Session.get('dataset')};
+    selector = {'dataset': getDataset()};
     isEmptySelector = true;
   } else {
-    selector['dataset'] = Session.get('dataset');
+    selector['dataset'] = getDataset();
   }
   if (!selector['$and']){
     selector['label'] = label;
@@ -108,7 +145,7 @@ var fetchAndCountLabelledExamples = function(selector, label) {
   }
   return {
     'match' : isEmptySelector ? 0 : Examples.find(selector).count(),
-    'missed' : Examples.find({'dataset': Session.get('dataset'), 'label' : label }).count()
+    'missed' : Examples.find({'dataset': getDataset(), 'label' : label }).count()
   }
 }
 
@@ -196,9 +233,9 @@ var filterByView = function(skeleton){
 
 var fetchShortestExamples = function(selector){
   if (_.isEmpty(selector)){
-    selector = {'dataset': Session.get('dataset')};
+    selector = {'dataset': getDataset()};
   } else {
-    selector['dataset'] = Session.get('dataset');
+    selector['dataset'] = getDataset();
   }
   // filter out examples without a corresponding graph
   if (!selector['$and']){
@@ -236,9 +273,9 @@ var fetchShortestExamples = function(selector){
 
 var fetchNShortestExamples = function(selector, n){
   if (_.isEmpty(selector)){
-    selector = {'dataset': Session.get('dataset')};
+    selector = {'dataset': getDataset()};
   } else {
-    selector['dataset'] = Session.get('dataset');
+    selector['dataset'] = getDataset();
   }
   // filter out examples without a corresponding graph
   if (!selector['$and']){
@@ -281,7 +318,7 @@ var createNewExample = function(text, label) {
   Meteor.call('createNewExample', {
     text: text,
     label: label,
-    dataset: Session.get('dataset'),
+    dataset: getDataset(),
     view: Session.get('view'),
     keyword: Session.get('keyword')
   }, (err, res) => {
@@ -299,7 +336,7 @@ var createNewExample = function(text, label) {
 var connectToRepo = function(path) {
   Meteor.call('connectToRepo', {
     path: path,
-    dataset: Session.get('dataset'),
+    dataset: getDataset(),
     view: Session.get('view'),
     keyword: Session.get('keyword')
   }, (err, res) => {
@@ -323,7 +360,7 @@ var updateLabels = function(exampleId, methodName, label, keyword, nextFunction)
     labels: label,
     view: Session.get('view'),
     keyword: keyword,
-    focalNode: Session.get('focalNode'),
+    focalNode: getFocalNode(),
   }, (err, res) => {
     if (err) {
       alert(err);
@@ -379,7 +416,7 @@ var deleteDiscriminativeSubgraphs = function() {
   Meteor.call('deleteDiscriminativeSubgraphs', {
     view: Session.get('view'),
     keyword: Session.get('keyword'),
-    focalNode: Session.get('focalNode'),
+    focalNode: getFocalNode(),
   }, (err, res) => {
     if (err) {
       alert(err);
@@ -396,7 +433,7 @@ var resetLabels = function() {
   Meteor.call('resetLabels', {
     view: Session.get('view'),
     keyword: Session.get('keyword'),
-    focalNode: Session.get('focalNode'),
+    focalNode: getFocalNode(),
   }, (err, res) => {
     if (err) {
       alert(err);
@@ -581,7 +618,7 @@ var editBag = function(bagId,  nextFunction) {
 var getOpenaiCompletion = function(nextFunction) {
 
   Meteor.call('getOpenaiCompletion', {
-    API: Session.get('focalAPI'),
+    API: getFocalAPI(),
   }, (err, res) => {
     if (err) {
       alert(err);
@@ -807,12 +844,12 @@ var identifyElementRoles = function() {
     }
 
     // a pre-method call is a method with an order to our focal API
-    if (elementToOutgoingType[element] && !element.includes("<init>") && elementToOutgoingType[element]['(order)'] && elementToOutgoingType[element]['(order)'].indexOf(Session.get("focalNode").replace('.','__')) > -1) {
+    if (elementToOutgoingType[element] && !element.includes("<init>") && elementToOutgoingType[element]['(order)'] && elementToOutgoingType[element]['(order)'].indexOf(getFocalNode().replace('.','__')) > -1) {
       
       elementsToRole[element] = (elementsToRole[element] || []).concat('method');
     }
     // a post-method call is a method with an order from our focal API
-    else if (elementToIncomingType[element] && !element.includes("<init>") && elementToIncomingType[element]['(order)'] && elementToIncomingType[element]['(order)'].indexOf(Session.get("focalNode").replace('.','__')) > -1) {
+    else if (elementToIncomingType[element] && !element.includes("<init>") && elementToIncomingType[element]['(order)'] && elementToIncomingType[element]['(order)'].indexOf(getFocalNode().replace('.','__')) > -1) {
       
       elementsToRole[element] = (elementsToRole[element] || []).concat('method');
     }
@@ -1055,7 +1092,7 @@ var render = function(obj) {
   // first, clear existing 'keyword-highlight'
   var exampleID = obj['exampleID'];
 
-  var focalAPI = Session.get('focalAPI');
+  var focalAPI = getFocalAPI();
   
   // console.log(exampleID);
   // console.log(obj);
@@ -1315,7 +1352,7 @@ var render = function(obj) {
 var computeAverageStart = function() {
 
   // focal API
-  var focalAPI = Session.get('focalAPI');
+  var focalAPI = getFocalAPI();
 
 
 
@@ -1677,7 +1714,7 @@ var sortNodes = function(subgraphs) {
 
   // console.log(startNodes)
 
-  var focalAPI = Session.get('focalAPI');
+  var focalAPI = getFocalAPI();
   // split startNodes into before and after focal node
   var methodsPrecedingFocal = startNodes.slice(0, startNodes.indexOf(focalAPI))
   .filter(function(nodeLabel) {
@@ -2776,7 +2813,7 @@ Template.body.helpers({
             return;
           }
 
-          if (exampleClustersByRole[role] && exampleClustersByRole[role].length >= 3 && !Session.get('focalAPI').includes(element.node)&& !element.toolFeedback ) {
+          if (exampleClustersByRole[role] && exampleClustersByRole[role].length >= 3 && !getFocalAPI().includes(element.node)&& !element.toolFeedback ) {
             return;
           }
 
@@ -3156,7 +3193,7 @@ Template.body.helpers({
             return;
           }
 
-          if (exampleClustersByRole[role] && exampleClustersByRole[role].length >= 3 && !Session.get('focalAPI').includes(element.node)&& !element.toolFeedback ) {
+          if (exampleClustersByRole[role] && exampleClustersByRole[role].length >= 3 && !getFocalAPI().includes(element.node)&& !element.toolFeedback ) {
             return;
           }
 
@@ -4371,13 +4408,13 @@ var helpers = {
   },
   positiveCount: function(optionname) {
     // var parentData = Template.parentData();
-    var selector = {'dataset': Session.get('dataset'), 'label' : 'positive' };
+    var selector = {'dataset': getDataset(), 'label' : 'positive' };
     
     return fetchAndCountExamples(selector);
   },
   negativeCount: function(optionname) {
     // var parentData = Template.parentData();
-    var selector = {'dataset': Session.get('dataset'), 'label' : 'positive' };
+    var selector = {'dataset': getDataset(), 'label' : 'positive' };
     
     return fetchAndCountExamples(selector);
   },
@@ -4955,7 +4992,7 @@ var helpers = {
 
     var targetIds  = []
     var targetExamples = []
-    if (Session.get('dataset') == 'init') {
+    if (getDataset() == 'init') {
       // target ids = 1018, 1005, 1012, 1023, 1022
       targetIds = [ 1018, 1005, 1012, 1023, 1022 ];
       targetExamples = _.filter(examples, function(example){
@@ -4963,7 +5000,7 @@ var helpers = {
       });
 
 
-    } else if (Session.get('dataset') == 'random') {
+    } else if (getDataset() == 'random') {
       // target ids = 1021, 1011, 1015, 1002
       targetIds = [ 1021, 1011, 1015, 1002 ];
       targetExamples = _.filter(examples, function(example){
@@ -5153,7 +5190,7 @@ var helpers = {
     return subgraphIds.join(',');
   },
   showIfFocalNode: function(node) {
-    if (escapeNodeForDisplay(node.text) == escapeNodeForDisplay(Session.get('focalNode'))) {
+    if (escapeNodeForDisplay(node.text) == escapeNodeForDisplay(getFocalNode())) {
       return 'show in';
     }
     // alternatively, one of its descendents matches
@@ -5163,7 +5200,7 @@ var helpers = {
     descendents.push.apply(descendents, children);
     while (descendents.length > 0) {
       var child = descendents.pop();
-      if (escapeNodeForDisplay(child.text) == escapeNodeForDisplay(Session.get('focalNode'))) {
+      if (escapeNodeForDisplay(child.text) == escapeNodeForDisplay(getFocalNode())) {
         return 'show in';
       }
       if (child.children != undefined) {
@@ -5175,7 +5212,7 @@ var helpers = {
   },
 
   hideIfHaveNonEmptyChildren: function(node) {
-    if (node.children == undefined && Session.get('focalNode') == node.text ) return 'hide';
+    if (node.children == undefined && getFocalNode() == node.text ) return 'hide';
     if (node.children != undefined) {
       for (var i = 0; i < node.children.length; i++) {
         if (node.children[i].text != '') {
@@ -5217,7 +5254,7 @@ var helpers = {
   },
   boundedBoxIfFocalAPI: function(node) {
     // console.log(node);
-    if (node.text == Session.get('focalAPI')) {
+    if (node.text == getFocalAPI()) {
       return 'boundedBox';
     }
     return '';

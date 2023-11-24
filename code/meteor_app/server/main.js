@@ -12,7 +12,7 @@ export const ActionLog = new Mongo.Collection('actionlog');
 export const Subgraphs = new Mongo.Collection('subgraphs');
 export const Bags = new Mongo.Collection('bags');
 export const Queries = new Mongo.Collection('queries');
-
+export const Config  = new Mongo.Collection('config');
 
 var request_counter = 0;
 var experiment_id = 'test';
@@ -21,6 +21,12 @@ var experiment_id = 'test';
 // var API = 'java.security.MessageDigest__digest';
 var APIshortName = "init";
 var API = "javax.crypto.Cipher__init";
+
+APIshortName = process.env.API_SHORTNAME ? process.env.API_SHORTNAME : APIshortName;
+API = process.env.TARGET_API ? process.env.TARGET_API : API;; 
+
+console.log('inserting config');
+
 
 // var appPath = appPath + ;
 
@@ -54,6 +60,8 @@ Meteor.startup(() => {
   // var reload = false;
   if (reload){
     resetDatabase();
+    Config.insert({APIshortName: APIshortName, API: API});
+
   }
 
 });
@@ -405,6 +413,7 @@ function resetDatabase() {
   TestExamples.remove({});
   Bags.remove({});
   Queries.remove({});
+  Config.remove({});
   // console.log('reload',reload);
   // run script to reset graph mining data
   spawn = Npm.require('child_process').spawn;
@@ -965,6 +974,108 @@ var filterByViewAndKeyword = function(skeleton, viewType, keyword){
 
   return selector;
 }
+
+function escapeNodeForDisplay(text) {
+  if (text == undefined) return '';
+  console.log('text', text);
+
+  var result = text.replace('__', '.')
+    // .replace("UNKNOWN", "<expr>");
+    .replace("UNKNOWN.", "");
+  if (result.includes("String:")) {
+    result = '' + result.replace("String:", '"') + '"';
+  }
+  if (result.includes("int:")) {
+    result = '' + result.replace("int:", '') + '';
+  }
+
+  if (result.includes("<catch>")) {
+    result = "catch (...) ";
+  }
+  if (result.includes("<r>")) {
+    result = "if (...) ";
+  }
+  if (result.includes('<throw>')) {
+    result = 'throw ';
+  }
+  if (result.includes("<init>")) {
+    result = '<span class="hljs-keyword">' +  "new " + '</span>' + result.replace(".<init>", "(...)");
+  }
+  if (result.includes("<cast>")) {
+    result = "(" + result.replace(".<cast>", ") ...");
+  }
+  if (result.includes("<return>")) {
+    result = "return ";
+  }
+  if (result.includes("<break>")) {
+    result = "break ";
+  }
+  if (result.includes("<continue>")) {
+    result = "continue ";
+  }
+  if (result.includes('<nullcheck>')) {
+    result = ' == null';
+  }
+  if (result.includes("<instanceof>")) {
+    result = '... <span class="hljs-keyword">instanceof </span>' + result.replace(".<instanceof>", "") + '';
+  }
+  return result;
+}
+
+
+var getSmplMixup = function(API) {
+  // get the current skeleton
+  // convert to spatch
+
+  var subgraphAsSmpl = Subgraphs.find( { '$or' : [{discriminative: true}] }).map(function(subgraph) {
+    var text = '';
+    subgraph.edges.forEach(function(edge) {
+      if (edge.to == '') return;
+
+      if (edge.label.includes('para')) {
+        if (edge.from.includes('(')) {
+          // text += escapeNodeForDisplay(edge.from).replace('(','').replace(')','') + '(' + escapeNodeForDisplay(edge.to) + ') ';
+          text += '* ' + escapeNodeForDisplay(edge.from).replace('(','').replace(')','') + '(C) ';
+        } else {
+          // text += escapeNodeForDisplay(edge.to).replace('(','').replace(')','') + '(' + escapeNodeForDisplay(edge.from) + ')';
+          text += '* ' + escapeNodeForDisplay(edge.to).replace('(','').replace(')','') + '(C)';
+          
+        }
+
+      } else if (edge.label.includes('order')) {
+        text += escapeNodeForDisplay(edge.from) + '\n...\n' + escapeNodeForDisplay(edge.to) + '';
+      }
+      
+    });
+    return text;
+  }).join('\n');
+
+
+  
+  console.log('subgraphAsSmpl');
+  console.log(subgraphAsSmpl);
+  command = spawn('python3',[appPath + "transform_programs.py", subgraphAsSmpl, API]);
+
+  command.stdout.on('data',  function (data) {
+    console.log('[getSmplMixup] stdout: ' + data);
+  });
+
+  command.stderr.on('data', function (data) {
+      console.log('[getSmplMixup] stderr: ' + data);
+  });
+
+  command.on('exit', Meteor.bindEnvironment(function (code) {
+    console.log('child process exited with code ' + code);
+    // read the output file
+
+    var example = fs.readFileSync(appPath.replace('meteor_app', 'graphs') + 'smpl_output.txt', 'utf8');
+
+    Queries.insert({
+      'rawCode': example,
+    });
+  }));
+}
+
 var fs = Npm.require('fs');
 
 
@@ -1768,13 +1879,18 @@ Meteor.methods({
   },
 
   'getOpenaiCompletion' ({API}) {
-    const completions =  getOpenaiCompletion(API);
-    console.log(completions);
+    // const completions =  getOpenaiCompletion(API);
+    // console.log(completions);
 
+    var completions = getSmplMixup(API);
+    console.log(completions);
   },
 
   'resetState' () {
     resetDatabase();
+
+    Config.insert({APIshortName: APIshortName, API: API});
+
   }
 
 });

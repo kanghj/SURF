@@ -15,6 +15,8 @@ var APIfocalNode = "Cipher.getInstance()";
 
 
 
+
+
 Meteor.startup(function(){
     $.getScript('js/tutorons-library.js', function(){
         console.log('script should be loaded and do something with it.');
@@ -33,16 +35,31 @@ Meteor.startup(function(){
   
     // var subjectNum = Number(prompt("Please enter your participant ID", "0"));
     
+    var config = Config.findOne({});
+
     Session.set('subjectNum',-1); //update for each subject
-    Session.set('dataset', APIshortName); //'findViewById'); //update for each subject
+    // Session.set('dataset', APIshortName); //'findViewById'); //update for each subject
+    Session.set('dataset', config.APIshortName); 
     // Session.set('focalAPI', 'Cipher__init()');
-    Session.set('focalAPI', API.split('.')[2] + '()');
+    // Session.set('focalAPI', API.split('.')[2] + '()');
+    Session.set('focalAPI', config.API.split('.')[2] + '()');
+
+    var API = config.API;
+    if (API.includes('javax.crypto.Cipher__init')) {
+        APIfocalNode = "Cipher.getInstance()";
+    } else if (API.includes('java.security.MessageDigest__digest')) {
+        APIfocalNode = "MessageDigest.getInstance()";
+    } else if (API.includes('java.security.SecureRandom__Key')) {
+        APIfocalNode = "SecureRandom.<init>";
+    } 
+
     Session.set('focalNode', APIfocalNode);
 
     Session.set('view', 'all');
     //create object which maps user id to correct dataset?
 
-    var participantId = Number(prompt("Please enter your participant ID", "0"));
+    // var participantId = Number(prompt("Please enter your participant ID", "0"));
+    participantId = 0;
     // var datasets = {1: 'fileInputStream', 2: 'findViewById', 3: 'get', 4: 'query'};
     Session.set('subjectNum', participantId); //update for each subject
 
