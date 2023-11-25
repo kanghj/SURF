@@ -3294,10 +3294,11 @@ Template.body.helpers({
     // return Examples.find({'query': true});
 
     // temp
-    return Examples.find();
+    // return Examples.find();
 
     // user study
-    // var examples = Examples.find({'label': {'$ne': '?'}}).fetch();
+    var examples = Examples.find({'label': {'$ne': '?'}}).fetch();
+    return examples;
 
     // examples.sort(function(a, b) {
     //   if (a['prelabelled'] && !b['prelabelled']) {
@@ -5729,7 +5730,7 @@ function patternGrowingCandidateNodes(subgraphWithHints) { // TODO, we currently
   } else {
       // also always consider <catch> 
     nodesInSkeleton.push('<catch>');
-    
+
     var allPossibleEdges = [];
     // get nodes that are connected
     var alreadyAdded = new Set();

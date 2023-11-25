@@ -74,11 +74,11 @@
         <!-- <span class="btn open-matching-examples-modal" data-toggle="modal" data-target="#matchingExamplesModal">Bootstrap pattern B</span> -->
         <!-- or  -->
         <span class="btn new-example" data-toggle="modal" data-target="#newExampleModal">Add Example</span>
-        <span class="btn connect-repo" data-toggle="modal" data-target="#connectToRepoModal">Apply Pattern to repository</span>
+        <span class="btn connect-repo" data-toggle="modal" data-target="#connectToRepoModal">Apply Pattern to another repository</span>
         <!-- <span class="btn open-label-query-examples-modal" data-toggle="modal" data-target="#labelQueryExamplesModal">Step 1. Bootstrap initial pattern</span> -->
-        <span class="btn open-openai-examples-modal" data-toggle="modal" data-target="#openaiExamplesModal">Bootstrap initial pattern using LLM</span>
+        <!-- <span class="btn open-openai-examples-modal" data-toggle="modal" data-target="#openaiExamplesModal">Bootstrap initial pattern using LLM</span> -->
         
-        <span class="btn" data-toggle="modal" data-target="#testPatternModal" {{disableIfEmptyPalette}}>Add Pattern to Bag</span>
+        <!-- <span class="btn" data-toggle="modal" data-target="#testPatternModal" {{disableIfEmptyPalette}}>Add Pattern to Bag</span> -->
         
         
         <!-- <span class="btn" data-toggle="modal" data-target="#startPatternModal">Select base pattern</span> -->
@@ -95,7 +95,7 @@
           </div>
           <div class="modal-body" style="height:80vh">
             <div class="form-group">
-              <label for="new-example-content">Add an example of a function/method using the API</label>
+              <label for="new-example-content">Add an example of a positive/negative example </label>
 
 
               <textarea class="form-control" id="new-example-content" rows="3" style="height:50vh"></textarea>
@@ -108,8 +108,8 @@
             <!-- <input type="radio" data-option="positive" value="positive" class="new-example-label-positive" /> -->
 
             <select name="" class="new-example-label" id="new-example-label">
-              <option value="positive" selected>Include</option>
-              <option value="negative">Exclude</option>
+              <option value="positive" selected>Positive</option>
+              <option value="negative">Negative</option>
             </select>
             <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button> -->
             <button type="button" class="btn btn-primary add-new-example">Add example</button>
@@ -531,7 +531,7 @@
             {{> exampleClusterByRole}}
           {{/each}}
           {{else}}
-            <div style="margin-top:50px; margin-bottom:70px"><strong>Please <a class="open-label-query-examples-modal btn btn-primary" data-toggle="modal" data-target="#labelQueryExamplesModal">bootstrap a pattern!</a>  </strong></div>
+            <div style="margin-top:50px; margin-bottom:70px"><strong>Please bootstrap a pattern using <a class="open-label-query-examples-modal btn btn-primary" data-toggle="modal" data-target="#labelQueryExamplesModal">predefined examples</a>  or <a class="open-label-all-examples-modal btn btn-primary" data-toggle="modal" data-target="#labelAllExamplesModal">view all examples</a>  </strong></div>
             <div>Afterwards, you will be able to provide feedback to PatternRefiner to refine or reinfer a pattern in this panel.</div>
 
             <!-- <button class="btn btn-primary " data-toggle="modal" data-target="#labelQueryExamplesModal">Bootstrap Pattern</button> -->
@@ -639,7 +639,7 @@
         </div>
         <div class="modal-body row" style="height:100vh; max-height:100vh;">
           <span>The following are the examples indicated as positive (green header) and negative (red header). 
-            The specific details of the code examples beyond they use the API can be <strong>ignored</strong>.</span>
+            </span>
             <span>
             Scroll down and click on the Infer Pattern button at the bottom of the page.</span>
           
@@ -654,7 +654,7 @@
               <div class="col-md-5">
               </div>
               <div class="col-md-1">
-                <span class="btn infer-pattern-btn btn-primary {{disabledIfNoDiscriminativeSubgraphs}}">Infer pattern</span>
+                <span class="btn infer-pattern-btn btn-primary">Infer pattern</span>
               </div>
               
             </div>
@@ -669,7 +669,7 @@
     <div class="" role="document">
       <div class="modal-content ">
         <div class="modal-header">
-          <h5 class="modal-title" id="labelAllExamplesModal">(ExampleRefiner) Inspect these examples</h5>
+          <h5 class="modal-title" id="labelAllExamplesModal">View all examples</h5>
           
 
           
@@ -679,9 +679,8 @@
         </div>
         <div class="modal-body row" style="height:100vh; max-height:100vh;">
           <!-- <span>Once you are done, click on the Infer Pattern button right at the bottom</span> -->
-          <p>Inspect the following code examples to answer the dataset comprehension questions (on the google doc/form).</p>
           <p>Green: positive. Red: negative. Blue: unlabelled (could be either positive or negative)</p>
-          <p>You may skip an example if you wish to. To end the task, scroll down to the bottom and click "Infer Pattern".</p>
+          <p>You may skip an example if you wish to.</p>
           
           <div class="col-md-7">
             <!-- {{queryCount}} Examples to label -->
