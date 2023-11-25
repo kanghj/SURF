@@ -29,3 +29,10 @@ From the command line in the meteor_app directory, run
 ```
 meteor
 ```
+
+or 
+
+```
+TARGET_API=java.security.MessageDigest__digest API_SHORTNAME=digest  meteor
+TARGET_API=java.security.SecureRandom__Key API_SHORTNAME=random  meteor
+```

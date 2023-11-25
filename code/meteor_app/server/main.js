@@ -14,7 +14,7 @@ export const Bags = new Mongo.Collection('bags');
 export const Queries = new Mongo.Collection('queries');
 export const Config  = new Mongo.Collection('config');
 
-var request_counter = 0;
+var request_counter = process.env.STARTING_COUNT ? process.env.STARTING_COUNT : 0;
 var experiment_id = 'test';
 
 // var APIshortName = 'digest';
@@ -406,7 +406,7 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
 
 function resetDatabase() {
   experiment_id = 'test';
-  request_counter = 0;
+  request_counter = process.env.STARTING_COUNT ? process.env.STARTING_COUNT : 0;
   // Session.set('request_counter', 0);
   Subgraphs.remove({});
   Examples.remove({});
@@ -1167,11 +1167,11 @@ var shellOutToMineSubgraphsMultiple = function(graphIds, labels, elementIdToGrap
   request_counter += 1;
 
   command.stdout.on('data',  function (data) {
-    console.log('[shellOutToMineSubgraphsMultiple] stdout: ' + data);
+    // console.log('[shellOutToMineSubgraphsMultiple] stdout: ' + data);
   });
 
   command.stderr.on('data', function (data) {
-      console.log('[shellOutToMineSubgraphsMultiple] stderr: ' + data);
+      // console.log('[shellOutToMineSubgraphsMultiple] stderr: ' + data);
   });
 
   command.on('exit', Meteor.bindEnvironment(function (code) {

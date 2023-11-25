@@ -245,27 +245,27 @@ var fetchShortestExamples = function(selector){
 
   // hack over edges.. ignore directions for non-order
   selector['$and'] = selector['$and']
-  // .map(function(item){
-  //   var newItem = {};
-  //   Object.keys(item).forEach(function(key){
-  //     if (key.includes('->') 
-  //     // && !key.includes("order")
-  //     ) {
-  //       var node1 = key.split(' -> ')[0];
-  //       var node2 = key.split(' -> ')[1].split(' ')[0];
-  //       var newEdge = node2 + ' -> ' + node1 + ' ' + key.split(' -> ')[1].split(' ')[1];
-  //       var newObj = {};
-  //       newObj[newEdge] = item[key];
-  //       var newKey = '$or';
-  //       newItem[newKey] = [item, newObj];
-  //     } else {
-  //       var newKey = key;
-  //       newItem[newKey] = item[key];
-  //     }
+  .map(function(item){
+    var newItem = {};
+    Object.keys(item).forEach(function(key){
+      if (key.includes('->') 
+      // && !key.includes("order")
+      ) {
+        var node1 = key.split(' -> ')[0];
+        var node2 = key.split(' -> ')[1].split(' ')[0];
+        var newEdge = node2 + ' -> ' + node1 + ' ' + key.split(' -> ')[1].split(' ')[1];
+        var newObj = {};
+        newObj[newEdge] = item[key];
+        var newKey = '$or';
+        newItem[newKey] = [item, newObj];
+      } else {
+        var newKey = key;
+        newItem[newKey] = item[key];
+      }
       
-  //   });
-  //   return newItem;  
-  // });
+    });
+    return newItem;  
+  });
 
   // console.log('selector',selector);
   return Examples.find(selector, { sort: { codeLength : 1 } });
@@ -5706,8 +5706,7 @@ function patternGrowingCandidateNodes(subgraphWithHints) { // TODO, we currently
     return node.text.replaceAll('.', '__');
   });
 
-  // also always consider <catch> 
-  nodesInSkeleton.push('<catch>');
+
   
   if (_.isEmpty(nodesInSkeleton)) {
     var allPossibleNodes = allNodes();
@@ -5728,6 +5727,9 @@ function patternGrowingCandidateNodes(subgraphWithHints) { // TODO, we currently
       }
     });
   } else {
+      // also always consider <catch> 
+    nodesInSkeleton.push('<catch>');
+    
     var allPossibleEdges = [];
     // get nodes that are connected
     var alreadyAdded = new Set();
