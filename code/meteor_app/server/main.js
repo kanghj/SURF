@@ -417,7 +417,9 @@ function resetDatabase() {
   // console.log('reload',reload);
   // run script to reset graph mining data
   spawn = Npm.require('child_process').spawn;
-  command = spawn('sh', [projectPath + "/code/reset_graphs_" + 'all' + ".sh"]);
+
+  console.log('running ' + projectPath + "code/reset_graphs_" + 'all' + ".sh")
+  command = spawn('sh', [projectPath + "code/reset_graphs_" + 'all' + ".sh"]);
   command.stdout.on('data', function (data) {
     console.log('[reset_graph.sh] stdout: ' + data);
   });
@@ -913,7 +915,7 @@ var buildSkeleton = function(){
 var filterByViewAndKeyword = function(skeleton, viewType, keyword){
   // account for the view type
   
-  if (viewType === 'all') {
+  if (viewType === 'all' || !viewType) {
     // default behavior
     var selector = constructSelectorToFilterBaggedPatterns({});
     

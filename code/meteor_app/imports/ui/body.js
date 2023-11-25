@@ -157,7 +157,7 @@ var computeSelectorByViewAndKeyword = function(skeleton){
   //   viewType = 'matching';
   //   Session.set('view', 'matching');
   // }
-  if (viewType === 'all') {
+  if (viewType === 'all' || !viewType) {
     // default behavior
     var selector = {} // constructSelectorToFilterBaggedPatterns({});
     
@@ -1992,7 +1992,7 @@ Template.example.onRendered(function() {
     Meteor.defer(function() {
     
       buildSkeleton();
-      hljs.highlightBlock(that.find('code'));
+      hljs.highlightBlock(that.find('code'), { language: 'java' });
       render(that['data']);
     });
 
