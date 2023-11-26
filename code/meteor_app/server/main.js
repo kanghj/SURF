@@ -14,7 +14,7 @@ export const Bags = new Mongo.Collection('bags');
 export const Queries = new Mongo.Collection('queries');
 export const Config  = new Mongo.Collection('config');
 
-var request_counter = process.env.STARTING_COUNT ? process.env.STARTING_COUNT : 0;
+var request_counter = process.env.STARTING_COUNT ? parseInt(process.env.STARTING_COUNT) : 1;
 var experiment_id = 'test';
 
 // var APIshortName = 'digest';
@@ -84,6 +84,7 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
   console.log('request_number', request_number);
   
   command = spawn('python3',[appPath + "misc_scripts/debug_subgraphs.py", experiment_id, request_number, API]);
+  console.log('python3',[appPath + "misc_scripts/debug_subgraphs.py", experiment_id, request_number, API].join(' '));
 
   // remove 'alternative' subgraphs
   Subgraphs.remove({'$and': [{'alternative': true}, { 'labelled': {'$ne': true} }, { '$or': [ {'bag' : {'$exists': false}}, {'bag': {$eq: null}}  ]}]});
@@ -171,7 +172,14 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
             edges.push({from: nodeLabel1, to: '', label: '', rawText:fragments[j]});
           }
 
+
+          if (showImmediately) {
+
+            Subgraphs.insert({rawText: text.replace(/\./g, '__'), edges: edges, adjlist: adjlist, discriminative:true, alternative: true, isPattern:isPattern, debug_added_from:'d', hidden: !showImmediately, labelled:false, debug_request_number: request_number});
+          }
+          else {
             Subgraphs.insert({rawText: text, edges: edges, adjlist: adjlist, discriminative:true, alternative: true, isPattern:isPattern, debug_added_from:'d', hidden: !showImmediately, labelled:false, debug_request_number: request_number});
+          }
             
 
             console.log('[discriminative=true] inserted  '+ text + ' with subgraphId=' + i);
@@ -406,7 +414,7 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
 
 function resetDatabase() {
   experiment_id = 'test';
-  request_counter = process.env.STARTING_COUNT ? process.env.STARTING_COUNT : 0;
+  request_counter = process.env.STARTING_COUNT ? parseInt(process.env.STARTING_COUNT) : 1;
   // Session.set('request_counter', 0);
   Subgraphs.remove({});
   Examples.remove({});
@@ -1574,9 +1582,17 @@ Meteor.methods({
     });
   
 
-    nodes.forEach(function (node) {
-      Subgraphs.insert(node);
-    }); 
+    // nodes.forEach(function (node) {
+    //   Subgraphs.insert(node);
+    // }); 
+    // insert muiltiple nodes
+    Subgraphs.batchInsert(nodes, function (error, result) {
+      if (error) {
+        console.log('[infer patterns] error when inserting new subgraph---->' + error);
+      } else {
+        console.log('[infer patterns] inserted new subgraph with id ' + result);
+      }
+    });
 
 
     // hide the query examples

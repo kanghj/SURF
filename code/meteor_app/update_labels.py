@@ -181,7 +181,8 @@ if has_enough_labels:
         must_include_node_ids.append(focal_node_id)
     must_include_node_ids = ','.join(must_include_node_ids)
     
-    target_subgraph_size = must_include_node_ids.count(',') + 2
+    # target_subgraph_size = must_include_node_ids.count(',') + 2
+    target_subgraph_size = 2
 
     print((' '.join(["java",'-Xmx32G', "-jar" ,project_path + 'code/meteor_app/misc_scripts/subgraph_miner.jar', '-d' , project_path + 'code/graphs/' + API + '_formatted_onlylabelled_' + experiment_id + str(request_counter) + '.txt',  '-s', '1', '-a', str(target_subgraph_size), '-i', '1', '-m', must_include_node_ids, '-e', exclude_node_ids])))
     p1 = subprocess.Popen(["java",'-Xmx32G', "-jar" ,project_path + 'code/meteor_app/misc_scripts/subgraph_miner.jar', '-d' , project_path + 'code/graphs/' + API + '_formatted_onlylabelled_' + experiment_id + str(request_counter) + '.txt',  '-s', '1', '-a', str(target_subgraph_size), '-i', '1', '-m', must_include_node_ids, '-e', exclude_node_ids])

@@ -839,9 +839,9 @@ var identifyElementRoles = function() {
   
   Object.keys(elementToOutgoingType).forEach(function(element) {
     // a guard is an element that has outgoing "sel"
-    if (elementToOutgoingType[element] && elementToOutgoingType[element]['(sel)'] && elementToOutgoingType[element]['(sel)'].indexOf("<throw>") == -1) {
-      elementsToRole[element] = (elementsToRole[element] || []).concat('guard');
-    }
+    // if (elementToOutgoingType[element] && elementToOutgoingType[element]['(sel)'] && elementToOutgoingType[element]['(sel)'].indexOf("<throw>") == -1) {
+    //   elementsToRole[element] = (elementsToRole[element] || []).concat('guard');
+    // }
 
     // a pre-method call is a method with an order to our focal API
     if (elementToOutgoingType[element] && !element.includes("<init>") && elementToOutgoingType[element]['(order)'] && elementToOutgoingType[element]['(order)'].indexOf(getFocalNode().replace('.','__')) > -1) {
@@ -2520,549 +2520,13 @@ Template.body.helpers({
     return Session.get('whatIfSubgraphBColor');
   },
   clusteredExamples() {
-    var subgraphs = Subgraphs.find({ '$and' : 
-      [
-        {'discriminative': true},  
-        {'hidden': {'$ne': true}},
-        {'$or': [{ 'bags': { '$exists': false } }, { 'bags': { $eq: null } }]}
-      ]
-    }).fetch();
-    if (subgraphs.length == 0) return [];
+    return determineChoicesOfCandidates(patternGrowingCandidateNodes, computeSelectorWithAdditionalSubgraphByText);
+  },
+  
 
-    buildSkeleton();
-    var skeleton = Session.get('skeleton');
+  clusteredExamplesForAlternative() {
+    return determineChoicesOfCandidates(alternativeSubgraphsCandidateNodes, computeSelectorWithOnlySubgraphByText);
     
-    var subgraphWithHints = {};
-    Subgraphs.find({hint: true}).forEach(function(subgraph) {
-      subgraphWithHints[subgraph.rawText] = true;
-    });
-    var subgraphs = patternGrowingCandidateNodes(subgraphWithHints);
-    console.log('pattern growing candidates');
-    console.log(subgraphs);
-
-    var headerText = {};
-    var mapping = {};
-    var negativeMapping = {};
-    var mustMatchEdges = {};
-    var hastoolFeedback = {};
-    
-    var subgraphEntropy = {};
-    var subgraphUnmatchedEntropy = {};
-    var subgraphLabelledPositiveMatches = {};
-    var subgraphLabelledNegativeMatches = {};
-    var skeletonEntropy = -1000 ;
-    var totalExamples = Session.get('totalExamples') ? Session.get('totalExamples') : fetchShortestExamples().count();
-    subgraphs.forEach(function(subgraph) {
-
-      var text = subgraph.composite ? subgraph.edge.rawText : subgraph.rawText;
-
-
-      if (mapping[text] || negativeMapping[text]) {
-        return;
-      }
-
-      hastoolFeedback[text] = subgraph.toolFeedback;
-      headerText[text] =  subgraph ;
-
-      // console.log('subgraph', subgraph);
-
-      var selectorWithAdditionalSubgraph = computeSelectorWithAdditionalSubgraphByText(skeleton, headerText[text].rawText);
-      // console.log(selectorWithAdditionalSubgraph);
-
-      if (subgraph.edge && subgraph.edge.from && subgraph.edge.to) {
-        var edge = subgraph.edge;
-        var edgeKey = edge.from + ' -> ' + edge.to + ' ' + edge.label ;
-        // if (!mustMatchEdges[edgeKey]) {
-        var newMatch = {};
-        newMatch[edgeKey] = {
-          $exists: true
-        };
-
-        selectorWithAdditionalSubgraph['$and'].push(newMatch);
-
-      }
-
-      var examplesAfter = fetchShortestExamples(constructSelectorToFilterBaggedPatterns(selectorWithAdditionalSubgraph));
-      var examplesAfterIDs = examplesAfter.map(function(example) {
-        return example._id;
-      });
-
-      examplesAfter.forEach(function(example) {
-        mapping[text] = mapping[text] || [];
-        
-        // check if mapping[text] already has example with the same id
-        var hasExample = false;
-        mapping[text].forEach(function(existingExample) {
-          if (existingExample._id === example._id) {
-            hasExample = true;
-          }
-        });
-        if (!hasExample) {
-          mapping[text].push(example);
-        }
-
-      });
-
-      
-      // next, find examples that are not matched by the subgraphs
-
-      var examplesBefore = fetchShortestExamples(constructSelectorToFilterBaggedPatterns(computeSelectorFromSkeleton(skeleton)));
-      var examplesBeforeIDs = examplesBefore.map(function(example) {
-        return example._id;
-      });
-      if (skeletonEntropy == -1000) {
-        var fetched = examplesBefore.fetch();
-        var skeletonLabelledPositiveMatches = fetched.filter(function(example) {
-          return example['label'] === 'positive';
-        });
-        var skeletonLabelledNegativeMatches = fetched.filter(function(example) {
-          return example['label'] === 'negative';
-        });
-
-        var allLabelledExamples = fetchShortestExamples(constructSelectorToFilterBaggedPatterns( {label: {'$in': ['positive', 'negative']}} )).fetch();
-
-        skeletonEntropy = entropy(skeletonLabelledPositiveMatches, skeletonLabelledNegativeMatches, 0.5);
-      }
-
-      subgraphLabelledPositiveMatches[text] = mapping[text] ? 
-        mapping[text].filter(function(example) {
-          return example['label'] === 'positive';
-        }) : 
-        [];
-      subgraphLabelledNegativeMatches [text] = mapping[text] ?
-        mapping[text].filter(function(example) {
-          return example['label'] === 'negative';
-        }) : 
-        [];
-
-        var allLabelledExamples = fetchShortestExamples(constructSelectorToFilterBaggedPatterns( {label: {'$in': ['positive', 'negative']}} )).fetch();
-
-
-      subgraphEntropy[text] = mapping[text] ? 
-        entropy(subgraphLabelledPositiveMatches[text], subgraphLabelledNegativeMatches [text], skeletonEntropy) : 
-        -1;
-
-      var matchedExampleIds = mapping[text] ? mapping[text].map(function(example) {
-        return example.exampleID;
-      }) : [];
-
-      subgraphUnmatchedEntropy[text] = mapping[text] ?
-        entropy(allLabelledExamples.filter (function(example) {
-          return example['label'] === 'positive' && !matchedExampleIds.includes(example.exampleID);
-        }), 
-        allLabelledExamples.filter (function(example) {
-          return example['label'] === 'negative' && !matchedExampleIds.includes(example.exampleID);
-        }), 0.5) :
-        -1;
-
- 
-
-      var examplesRemovedIDs = _.difference(examplesBeforeIDs, examplesAfterIDs);
-      examplesBefore.fetch()
-      .filter(function(example) {
-        return examplesRemovedIDs.indexOf(example._id) !== -1;
-      })
-      .forEach(function(example) {
-        negativeMapping[text] = negativeMapping[text] || [];
-        example.showAsRemoved = true;
-
-        // check if mapping[text] already has example with the same id
-        var hasExample = false;
-        negativeMapping[text].forEach(function(existingExample) {
-          if (existingExample._id === example._id) {
-            hasExample = true;
-          }
-        });
-        if (!hasExample) {
-          negativeMapping[text].push(example);
-        }
-
-      });
-    });
-
-    // sort all values in  mapping  and negativeMapping
-    // each example should be sorted such that the positive examples are first, and the negative examples are next, then unlabelled examples
-
-    for (var key in mapping) {
-      sortExamples(mapping[key]);
-    }
-    for (var key in negativeMapping) {
-      sortExamples(negativeMapping[key]);
-    }
-
-
-    var listOfElements = [];
-    var headerCount = 0;
-
-
-    var informativenessWeight = Session.get('informativenessWeight');
-    var representativenessWeight = Session.get('representativenessWeight');
-    var diversityWeight = Session.get('diversityWeight');
-
-    console.log('informativenessWeight', informativenessWeight);
-    console.log('representativenessWeight', representativenessWeight);
-
-    console.log('[clusteredExamples mapping');
-    console.log(mapping);
-    for (var key in mapping) {
-      var labelledPositiveAndMatchingCount = (mapping[key] || []).filter(function(example) {
-        return example['label'] === 'positive';
-      }).length
-      var labelledPositiveAndNotMatchingCount = (negativeMapping[key] || []).filter(function(example) {
-        return example['label'] === 'positive';
-      }).length;
-
-      var labelledNegativeAndMatchingCount = (mapping[key] || []).filter(function(example) {
-        return example['label'] === 'negative';
-      }).length;
-
-      var labelledNegativeAndNotMatchingCount =  (negativeMapping[key] || []).filter(function(example) {
-        return example['label'] === 'negative';
-      }).length;
-
-      var informationGainDenominator =  labelledPositiveAndMatchingCount + labelledPositiveAndNotMatchingCount + labelledNegativeAndMatchingCount + labelledNegativeAndNotMatchingCount;
-
-      var averageEntropy = (labelledPositiveAndMatchingCount + labelledNegativeAndMatchingCount) / informationGainDenominator * subgraphEntropy[key] + ( (labelledPositiveAndNotMatchingCount + labelledNegativeAndNotMatchingCount) / informationGainDenominator * subgraphUnmatchedEntropy[key]) ;
-      var informationGain = skeletonEntropy - averageEntropy;
-      if (!(informationGain > 0)) {
-        informationGain = 0;
-      }
-
-      var representativeness = (mapping[key] || []).length;
-
-      var hasFeedback = hastoolFeedback[ key ];
-
-      // normalize the informationgain and representativeness
-      // informationGain = informationGain ;
-      representativeness = representativeness / totalExamples;
-      
-      listOfElements.push({headerCount: headerCount, header: headerText[key], 
-        node: headerText[key].rawText,
-        // while we call it "positive", this means "matching"
-        positiveExamples: (mapping[key] || []), //.slice(0, 3) ,  
-        positiveExampleCount: (mapping[key] || []).length,
-
-        // while we call it "negative", this means "not matching"
-        negativeExamples: (negativeMapping[key] || []), //.slice(0, 3),
-        negativeExampleCount: (negativeMapping[key] || []).length,
-
-        labelledPositiveAndMatchingCount: labelledPositiveAndMatchingCount,
-        labelledPositiveAndNotMatchingCount: labelledPositiveAndNotMatchingCount,
-
-        labelledNegativeAndMatchingCount: labelledNegativeAndMatchingCount,
-        labelledNegativeAndNotMatchingCount: labelledNegativeAndNotMatchingCount,
-
-        unlabelledAndMatchingCount: (mapping[key] || []).filter(function(example) {
-          return example['label'] === '?';
-        }).length,
-
-        unlabelledAndNotMatchingCount: (negativeMapping[key] || []).filter(function(example) {
-          return example['label'] === '?';
-        }).length,
-
-        informationGain: informationGain,
-        representativeness: representativeness,
-        score: informativenessWeight * (informationGain) + representativenessWeight * representativeness,
-        toolFeedback: hasFeedback,
-
-        // debug
-        subgraphEntropy: subgraphEntropy[key],
-        subgraphUnmatchedEntropy: subgraphUnmatchedEntropy[key],
-        skeletonEntropy: skeletonEntropy,
-      });
-
-      headerCount += 1;
-    }
-
-
-
-    // sort listOfElements 
-    listOfElements.sort(function(a, b) {
-      // return b.informationGain - a.informationGain;
-      // return b.positiveExampleCount  + b.negativeExampleCount - a.positiveExampleCount - a.negativeExampleCount;
-
-      return b.score - a.score > 0 ? 1 : -1;
-    });
-    
-    console.log('listOfElements');
-    console.log(listOfElements);
-
-    var elementRoles = identifyElementRoles();
-
-    var exampleClustersByRole = {};
-    
-    listOfElements
-      .filter(function(element) {
-        return elementRoles[element.node];
-      })
-      .forEach(function(element) {
-        var roles = elementRoles[element.node];
-        roles.forEach(function(role) {
-
-          if (role == 'guard' && exampleClustersByRole[role] && exampleClustersByRole[role].length >= 3 && !element.toolFeedback) {
-            return;
-          }
-
-          // TODO: here is a temp hack to hide the methods that are parameters. This simplifies the interface significantly for the user
-          // if (roleList[3]) {
-          //   roleList[3].cluster = roleList[3].cluster.filter(function(cluster) {
-          //     return !cluster.node.includes('(');
-          //   });
-          // }
-          if (role == 'parameter1' && elementRoles[element.node].includes('method')) {
-            return;
-          }
-
-          if (exampleClustersByRole[role] && exampleClustersByRole[role].length >= 3 && !getFocalAPI().includes(element.node)&& !element.toolFeedback ) {
-            return;
-          }
-
-          // for 'guard', do not add (order)
-          if (role === 'guard' && element.header && element.header.edge && element.header.edge.label && element.header.edge.label.indexOf('(order)') !== -1) {
-            return;
-          }
-
-          exampleClustersByRole[role] = exampleClustersByRole[role] || [];
-          exampleClustersByRole[role].push(element);
-          
-          if (element.toolFeedback ) {
-
-            // TODO check if another element matches a superset of the the labelled examples 
-            var hasAnotherElementWithSuperset 
-
-            var elementsWithSuperset = 
-              listOfElements
-                .filter(function(anotherElement) {
-                  // we pick only another element that is not the same as the current element
-                  return anotherElement.node !== element.node;
-                })
-                .filter(function(anotherElement) {
-                  // console.log('anotherElement', anotherElement);
-                  // console.log(subgraphLabelledPositiveMatches[anotherElement.header.edge.rawText]);
-                  // console.log('element', element);
-                  // console.log(subgraphLabelledPositiveMatches[element.header.edge.rawText]);
-                  return elementRoles[anotherElement.node] 
-                    && anotherElement.toolFeedback == 'bg-success'
-                    && subgraphLabelledPositiveMatches[anotherElement.header.edge.rawText].length >= subgraphLabelledPositiveMatches[element.header.edge.rawText].length;
-                })
-                .filter(function(anotherElement) {
-                  var anotherElementExamples = subgraphLabelledPositiveMatches[anotherElement.header.edge.rawText].map(function(example) {
-                    return example.exampleID;
-                  });
-                  var elementExamples = subgraphLabelledPositiveMatches[element.header.edge.rawText].map(function(example) {
-                    return example.exampleID;
-                  });
-                  return _.difference(elementExamples, anotherElementExamples).length == 0;
-                });
-            var hasAnotherElementWithSuperset = elementsWithSuperset.length > 0;
-              
-            if (exampleClustersByRole[role].length > 1 && exampleClustersByRole[role][0].score > element.score) {
-              // change feedback to the css class
-              element.toolFeedback = 'bg-danger' 
-              element.whatIf = '<p class="text-white" style="text-decoration: underline; cursor: pointer;">Why?</p>'
-              
-              element.whatifSubgraphA = exampleClustersByRole[role][0].node;
-              element.whatifSubgraphB = element.node;
-              element.whatifSubgraphAColor = 'green';
-              element.whatifSubgraphBColor = 'red';
-
-              var ignoreSubgraphs = window.ignoreSubgraphs;
-              ignoreSubgraphs = ignoreSubgraphs + ',' + element.node;
-              window.ignoreSubgraphs = ignoreSubgraphs;
-            } else {
-              if (hasAnotherElementWithSuperset) {
-                element.toolFeedback = 'bg-warning';
-                // element.whatIf = '<p style="text-decoration: underline; cursor: pointer;">Why?</p>'
-                element.whatifSubgraphA = elementsWithSuperset[0].node;
-                element.whatifSubgraphB = element.node;
-                element.whatifSubgraphAColor = 'green';
-                element.whatifSubgraphBColor = 'yellow';
-
-                var ignoreSubgraphs = window.ignoreSubgraphs;
-                ignoreSubgraphs = ignoreSubgraphs + ',' + element.node;
-                window.ignoreSubgraphs = ignoreSubgraphs;
-                
-              } else {
-                element.toolFeedback = 'bg-success' 
-              }
-            }
-            
-          } else {
-            // remove the element from the list
-            if (window.ignoreSubgraphs && window.ignoreSubgraphs.includes(element.node)) {
-              var ignoreSubgraphs = window.ignoreSubgraphs.split(',');
-              ignoreSubgraphs = ignoreSubgraphs.filter(function(item) {
-                return item !== element.node
-              });
-              window.ignoreSubgraphs = ignoreSubgraphs.join(',');
-            }
-          }
-          
-        });
-
-      });
-      console.log('exampleClustersByRole');
-    console.log(exampleClustersByRole);
-
-    // enumerate over exampleClustersByRole
-    var displayedElementCount=0;
-    for (var clusterKey of ['declaration', 'guard', 'parameter1', 'method', 'exception', 'return',  'error', undefined]) {
-      if (!exampleClustersByRole[clusterKey]) {
-        continue;
-      }
-      var clusters = exampleClustersByRole[clusterKey];
-      clusters.forEach(function(cluster, cluster_i) {
-        cluster['rowNumber'] = displayedElementCount;
-        displayedElementCount += 1;
-      });
-    }
-
-    // as list
-    var keyColors = {
-      'declaration': '120',
-      'guard': '160',
-      'method': '200',
-      'parameter1': '200',
-      'exception': '260',
-      'return': '220',
-      'error': '280',
-    }
-    var roleList = [];
-    for (var key of ['declaration', 'guard', 'parameter1', 'method', 'exception', 'return',  'error', undefined]) {
-      var add = {
-        role: key,
-        cluster: structuredClone(exampleClustersByRole[key]),
-        contextColor: keyColors[key],
-      };
-      roleList.push(add);
-
-      // the examples will go under the cluster of the role
-      if (!add.cluster) {
-        continue;
-      }
-      add.cluster.forEach(function(cluster, cluster_i) {
-        cluster.positiveExamples.forEach(function(example) {
-          example['clusterContext'] = key + '-add-' + cluster.node.replaceAll('(', '').replaceAll(')', '').replaceAll('<', '').replaceAll('>', '').replaceAll(':', '').replaceAll('/', '').replaceAll('[', '').replaceAll(']', '').replaceAll('=', '');
-          example['additionalNode'] = cluster.node;
-        });
-        cluster.negativeExamples.forEach(function(example) {
-          example['clusterContext'] = key + '-removed-' + cluster.node.replaceAll('(', '').replaceAll(')', '').replaceAll('<', '').replaceAll('>', '').replaceAll(':', '').replaceAll('/', '').replaceAll('[', '').replaceAll(']', '').replaceAll('=', '');
-        });
-
-        cluster['contextColor'] = keyColors[key] - cluster_i;
-      });
-      if (add.cluster) {
-        add.cluster.forEach(function(cluster) {
-          cluster['role'] = key;
-        });
-      }
-      add.cluster.forEach(function(cluster) {
-        Meteor.defer(function() {
-          cluster.positiveExamples.concat(cluster.negativeExamples).forEach(function(example) {
-            render(example);
-          });
-        });
-      });
-      
-    }
-
-    // within the `method` role, sort the clusters
-    if (roleList[roleList.indexOf('method')]) {
-
-      // insert "nodes" corresponding to the skelton
-      var subgraphNodeLabels = 
-          Object.keys(skeleton)
-          .filter(function(nodeLabel) {
-            var checked = skeleton[nodeLabel].checked;
-            return checked;
-          })
-          .filter(function(nodeLabel) {
-            return !nodeLabel.includes('->') && nodeLabel.includes('('); // looks like a method call
-          })
-          .map(function(nodeLabel) {
-            return nodeLabel;
-          });
-
-      
-
-      // determine which nodes are positioned behind each subgraphNodeLabel
-
-      // sort the clusters
-      var beforeNodeLabels = {};
-
-      subgraphNodeLabels.forEach(function(nodeLabel) {
-        beforeNodeLabels[nodeLabel] = [];
-        roleList[1].cluster.forEach(function(one_subgraph) {
-          if (one_subgraph.header.otherNode === nodeLabel && !one_subgraph.header.linkedToSource) {
-            
-            beforeNodeLabels[nodeLabel].push(one_subgraph);
-          }
-        });        
-
-        Object.keys(skeleton).filter(element => element.includes('->')).forEach(function(skeletonEdge) {
-          var skeletonEdgeSource = skeletonEdge.split(' -> ')[0];
-          var skeletonEdgeTarget = skeletonEdge.split(' -> ')[1].split(' ')[0];
-
-          // check both are method calls
-          if (!skeletonEdgeSource.includes('(') || !skeletonEdgeTarget.includes('(')) {
-            return;
-          }
-
-          if (skeletonEdgeTarget === nodeLabel) {
-            var otherNode = skeletonEdgeSource;
-
-            beforeNodeLabels[nodeLabel].push(otherNode);
-
-          }
-
-        });
-      });
-
-      // sort the subgraphNodeLabels by length of beforeNodeLabels
-      var sortedNodeLabels = subgraphNodeLabels.sort(function(a, b) {
-        return beforeNodeLabels[a].length - beforeNodeLabels[b].length;
-      });
-
-      var newCluster = []
-      var alreadyInserted = {};
-      // insert the clusters in the sorted order
-      sortedNodeLabels.forEach(function(nodeLabel) {
-        beforeNodeLabels[nodeLabel].forEach(function(subgraph) {
-          if (!subgraph.node || alreadyInserted[subgraph.node]) {
-            return;
-          }
-          newCluster.push(subgraph);
-          alreadyInserted[subgraph.node] = true;
-        });
-        // insert subgraphNodeLabels into the cluster
-        newCluster.push({
-          header: {
-            pseudo: true,
-            edge: {
-              rawText: nodeLabel
-            }
-          },
-          node: nodeLabel,
-          positiveExamples: [],
-          positiveExampleCount: 0,
-          negativeExamples: [],
-          negativeExampleCount: 0,
-          role: 'method',
-          rawText : nodeLabel
-        });
-      });
-      // append remaining subgraphs in cluster 
-      roleList[1].cluster.forEach(function(subgraph) {
-        if (alreadyInserted[subgraph.node]) {
-          return;
-        }
-        newCluster.push(subgraph);
-      });
-
-      roleList[1].cluster = newCluster;;
-    }
-
-    return roleList;
   },
 
   discriminativeSubgraphsSkeleton() {
@@ -3999,9 +3463,9 @@ Template.body.events({
     var isBaseline = Session.get('isBaseline');
     
     if (!isBaseline) {
-      showStatus('Inferring the most general pattern. Once the pattern appears, provide feedback by checking the "Suggest" checkboxes. A checkmark means the feature should be considered when "Reinfer Pattern" is clicked');
+      showStatus('Provide feedback by checking the "Suggest" checkboxes. A checkmark means the feature should be considered when "Reinfer Pattern" is clicked');
     }else{ 
-      showStatus('Inferring the most general pattern. Once the pattern appears, click on "View and label matching examples" to label more examples.');
+      showStatus('Click on "View and label matching examples" to label more examples.');
     }
     hideLoadingText();
   },
@@ -5458,6 +4922,18 @@ var helpers = {
     if (role == 'error') return '// Error Handling';
     return '// ' + role[0].toUpperCase() + role.slice(1);
   },
+  otherNode: function(node) {
+    if (node.composite) {
+      return escapeNodeForDisplay(node.otherNode);
+    }
+    return '';
+  },
+  thisNode: function(node) {
+    if (node.composite) {
+      return escapeNodeForDisplay(node.node);
+    }
+    return node;
+  },
   displayHeader: function(node) {
     if (node.composite) {
       if (node.edge.label.includes('order')) {
@@ -5487,7 +4963,7 @@ var helpers = {
           
         }
 
-        if (node.otherNode.includes("(") || node.rawText.includes("(")) {  // both seem to be method calls!
+        if (node.otherNode.includes("(") && node.rawText.includes("(")) {  // both seem to be method calls!
           return escapeNodeForDisplay(node.otherNode).split('(')[0] + '(...' + escapeNodeForDisplay(node.rawText) + '...)';
         }
 
@@ -5696,6 +5172,552 @@ function sortExamples(examples) {
   });
 }
 
+function determineChoicesOfCandidates(findCandidateNodes, computeSelectorAfterFeatureSelection) {
+  var subgraphs = Subgraphs.find({ '$and' : 
+    [
+      {'discriminative': true},  
+      {'hidden': {'$ne': true}},
+      {'$or': [{ 'bags': { '$exists': false } }, { 'bags': { $eq: null } }]}
+    ]
+  }).fetch();
+  if (subgraphs.length == 0) return [];
+
+  buildSkeleton();
+  var skeleton = Session.get('skeleton');
+  
+  var subgraphWithHints = {};
+  Subgraphs.find({hint: true}).forEach(function(subgraph) {
+    subgraphWithHints[subgraph.rawText] = true;
+  });
+  var subgraphs = findCandidateNodes(subgraphWithHints);
+  console.log('pattern growing candidates');
+  console.log(subgraphs);
+
+  var headerText = {};
+  var mapping = {};
+  var negativeMapping = {};
+  var mustMatchEdges = {};
+  var hastoolFeedback = {};
+  
+  var subgraphEntropy = {};
+  var subgraphUnmatchedEntropy = {};
+  var subgraphLabelledPositiveMatches = {};
+  var subgraphLabelledNegativeMatches = {};
+  var skeletonEntropy = -1000 ;
+  var totalExamples = Session.get('totalExamples') ? Session.get('totalExamples') : fetchShortestExamples().count();
+  subgraphs.forEach(function(subgraph) {
+
+    var text = subgraph.composite ? subgraph.edge.rawText : subgraph.rawText;
+
+
+    if (mapping[text] || negativeMapping[text]) {
+      return;
+    }
+
+    hastoolFeedback[text] = subgraph.toolFeedback;
+    headerText[text] =  subgraph ;
+
+    // console.log('subgraph', subgraph);
+
+    var selectorWithAdditionalSubgraph = computeSelectorAfterFeatureSelection(skeleton, headerText[text].rawText);
+    // console.log(selectorWithAdditionalSubgraph);
+
+    if (subgraph.edge && subgraph.edge.from && subgraph.edge.to) {
+      var edge = subgraph.edge;
+      var edgeKey = edge.from + ' -> ' + edge.to + ' ' + edge.label ;
+      // if (!mustMatchEdges[edgeKey]) {
+      var newMatch = {};
+      newMatch[edgeKey] = {
+        $exists: true
+      };
+
+      selectorWithAdditionalSubgraph['$and'].push(newMatch);
+
+    }
+
+    var examplesAfter = fetchShortestExamples(constructSelectorToFilterBaggedPatterns(selectorWithAdditionalSubgraph));
+    var examplesAfterIDs = examplesAfter.map(function(example) {
+      return example._id;
+    });
+
+    examplesAfter.forEach(function(example) {
+      mapping[text] = mapping[text] || [];
+      
+      // check if mapping[text] already has example with the same id
+      var hasExample = false;
+      mapping[text].forEach(function(existingExample) {
+        if (existingExample._id === example._id) {
+          hasExample = true;
+        }
+      });
+      if (!hasExample) {
+        mapping[text].push(example);
+      }
+
+    });
+
+    
+    // next, find examples that are not matched by the subgraphs
+
+    var examplesBefore = fetchShortestExamples(constructSelectorToFilterBaggedPatterns(computeSelectorFromSkeleton(skeleton)));
+    var examplesBeforeIDs = examplesBefore.map(function(example) {
+      return example._id;
+    });
+    if (skeletonEntropy == -1000) {
+      var fetched = examplesBefore.fetch();
+      var skeletonLabelledPositiveMatches = fetched.filter(function(example) {
+        return example['label'] === 'positive';
+      });
+      var skeletonLabelledNegativeMatches = fetched.filter(function(example) {
+        return example['label'] === 'negative';
+      });
+
+      var allLabelledExamples = fetchShortestExamples(constructSelectorToFilterBaggedPatterns( {label: {'$in': ['positive', 'negative']}} )).fetch();
+
+      skeletonEntropy = entropy(skeletonLabelledPositiveMatches, skeletonLabelledNegativeMatches, 0.5);
+    }
+
+    subgraphLabelledPositiveMatches[text] = mapping[text] ? 
+      mapping[text].filter(function(example) {
+        return example['label'] === 'positive';
+      }) : 
+      [];
+    subgraphLabelledNegativeMatches [text] = mapping[text] ?
+      mapping[text].filter(function(example) {
+        return example['label'] === 'negative';
+      }) : 
+      [];
+
+      var allLabelledExamples = fetchShortestExamples(constructSelectorToFilterBaggedPatterns( {label: {'$in': ['positive', 'negative']}} )).fetch();
+
+
+    subgraphEntropy[text] = mapping[text] ? 
+      entropy(subgraphLabelledPositiveMatches[text], subgraphLabelledNegativeMatches [text], skeletonEntropy) : 
+      -1;
+
+    var matchedExampleIds = mapping[text] ? mapping[text].map(function(example) {
+      return example.exampleID;
+    }) : [];
+
+    subgraphUnmatchedEntropy[text] = mapping[text] ?
+      entropy(allLabelledExamples.filter (function(example) {
+        return example['label'] === 'positive' && !matchedExampleIds.includes(example.exampleID);
+      }), 
+      allLabelledExamples.filter (function(example) {
+        return example['label'] === 'negative' && !matchedExampleIds.includes(example.exampleID);
+      }), 0.5) :
+      -1;
+
+
+
+    var examplesRemovedIDs = _.difference(examplesBeforeIDs, examplesAfterIDs);
+    examplesBefore.fetch()
+    .filter(function(example) {
+      return examplesRemovedIDs.indexOf(example._id) !== -1;
+    })
+    .forEach(function(example) {
+      negativeMapping[text] = negativeMapping[text] || [];
+      example.showAsRemoved = true;
+
+      // check if mapping[text] already has example with the same id
+      var hasExample = false;
+      negativeMapping[text].forEach(function(existingExample) {
+        if (existingExample._id === example._id) {
+          hasExample = true;
+        }
+      });
+      if (!hasExample) {
+        negativeMapping[text].push(example);
+      }
+
+    });
+  });
+
+  // sort all values in  mapping  and negativeMapping
+  // each example should be sorted such that the positive examples are first, and the negative examples are next, then unlabelled examples
+
+  for (var key in mapping) {
+    sortExamples(mapping[key]);
+  }
+  for (var key in negativeMapping) {
+    sortExamples(negativeMapping[key]);
+  }
+
+
+  var listOfElements = [];
+  var headerCount = 0;
+
+
+  var informativenessWeight = Session.get('informativenessWeight');
+  var representativenessWeight = Session.get('representativenessWeight');
+  var diversityWeight = Session.get('diversityWeight');
+
+  console.log('informativenessWeight', informativenessWeight);
+  console.log('representativenessWeight', representativenessWeight);
+
+  console.log('[clusteredExamples mapping');
+  console.log(mapping);
+  for (var key in mapping) {
+    var labelledPositiveAndMatchingCount = (mapping[key] || []).filter(function(example) {
+      return example['label'] === 'positive';
+    }).length
+    var labelledPositiveAndNotMatchingCount = (negativeMapping[key] || []).filter(function(example) {
+      return example['label'] === 'positive';
+    }).length;
+
+    var labelledNegativeAndMatchingCount = (mapping[key] || []).filter(function(example) {
+      return example['label'] === 'negative';
+    }).length;
+
+    var labelledNegativeAndNotMatchingCount =  (negativeMapping[key] || []).filter(function(example) {
+      return example['label'] === 'negative';
+    }).length;
+
+    var informationGainDenominator =  labelledPositiveAndMatchingCount + labelledPositiveAndNotMatchingCount + labelledNegativeAndMatchingCount + labelledNegativeAndNotMatchingCount;
+
+    var averageEntropy = (labelledPositiveAndMatchingCount + labelledNegativeAndMatchingCount) / informationGainDenominator * subgraphEntropy[key] + ( (labelledPositiveAndNotMatchingCount + labelledNegativeAndNotMatchingCount) / informationGainDenominator * subgraphUnmatchedEntropy[key]) ;
+    var informationGain = skeletonEntropy - averageEntropy;
+    if (!(informationGain > 0)) {
+      informationGain = 0;
+    }
+
+    var representativeness = (mapping[key] || []).length;
+
+    var hasFeedback = hastoolFeedback[ key ];
+
+    // normalize the informationgain and representativeness
+    // informationGain = informationGain ;
+    representativeness = representativeness / totalExamples;
+    
+    listOfElements.push({headerCount: headerCount, header: headerText[key], 
+      node: headerText[key].rawText,
+      // while we call it "positive", this means "matching"
+      positiveExamples: (mapping[key] || []), //.slice(0, 3) ,  
+      positiveExampleCount: (mapping[key] || []).length,
+
+      // while we call it "negative", this means "not matching"
+      negativeExamples: (negativeMapping[key] || []), //.slice(0, 3),
+      negativeExampleCount: (negativeMapping[key] || []).length,
+
+      labelledPositiveAndMatchingCount: labelledPositiveAndMatchingCount,
+      labelledPositiveAndNotMatchingCount: labelledPositiveAndNotMatchingCount,
+
+      labelledNegativeAndMatchingCount: labelledNegativeAndMatchingCount,
+      labelledNegativeAndNotMatchingCount: labelledNegativeAndNotMatchingCount,
+
+      unlabelledAndMatchingCount: (mapping[key] || []).filter(function(example) {
+        return example['label'] === '?';
+      }).length,
+
+      unlabelledAndNotMatchingCount: (negativeMapping[key] || []).filter(function(example) {
+        return example['label'] === '?';
+      }).length,
+
+      informationGain: informationGain,
+      representativeness: representativeness,
+      score: informativenessWeight * (informationGain) + representativenessWeight * representativeness,
+      toolFeedback: hasFeedback,
+
+      // debug
+      subgraphEntropy: subgraphEntropy[key],
+      subgraphUnmatchedEntropy: subgraphUnmatchedEntropy[key],
+      skeletonEntropy: skeletonEntropy,
+    });
+
+    headerCount += 1;
+  }
+
+
+
+  // sort listOfElements 
+  listOfElements.sort(function(a, b) {
+    // return b.informationGain - a.informationGain;
+    // return b.positiveExampleCount  + b.negativeExampleCount - a.positiveExampleCount - a.negativeExampleCount;
+
+    return b.score - a.score > 0 ? 1 : -1;
+  });
+  
+  console.log('listOfElements');
+  console.log(listOfElements);
+
+  var elementRoles = identifyElementRoles();
+
+  var exampleClustersByRole = {};
+  
+  listOfElements
+    .filter(function(element) {
+      return elementRoles[element.node];
+    })
+    .forEach(function(element) {
+      var roles = elementRoles[element.node];
+      roles.forEach(function(role) {
+
+        if (role == 'guard' && exampleClustersByRole[role] && exampleClustersByRole[role].length >= 3 && !element.toolFeedback) {
+          return;
+        }
+
+        // TODO: here is a temp hack to hide the methods that are parameters. This simplifies the interface significantly for the user
+        // if (roleList[3]) {
+        //   roleList[3].cluster = roleList[3].cluster.filter(function(cluster) {
+        //     return !cluster.node.includes('(');
+        //   });
+        // }
+        if (role == 'parameter1' && elementRoles[element.node].includes('method')) {
+          return;
+        }
+
+        if (exampleClustersByRole[role] && exampleClustersByRole[role].length >= 3 && !getFocalAPI().includes(element.node)&& !element.toolFeedback ) {
+          return;
+        }
+
+        // for 'guard', do not add (order)
+        if (role === 'guard' && element.header && element.header.edge && element.header.edge.label && element.header.edge.label.indexOf('(order)') !== -1) {
+          return;
+        }
+
+        exampleClustersByRole[role] = exampleClustersByRole[role] || [];
+        exampleClustersByRole[role].push(element);
+        
+        if (element.toolFeedback ) {
+
+          // TODO check if another element matches a superset of the the labelled examples 
+          var hasAnotherElementWithSuperset 
+
+          var elementsWithSuperset = 
+            listOfElements
+              .filter(function(anotherElement) {
+                // we pick only another element that is not the same as the current element
+                return anotherElement.node !== element.node;
+              })
+              .filter(function(anotherElement) {
+                // console.log('anotherElement', anotherElement);
+                // console.log(subgraphLabelledPositiveMatches[anotherElement.header.edge.rawText]);
+                // console.log('element', element);
+                // console.log(subgraphLabelledPositiveMatches[element.header.edge.rawText]);
+                return elementRoles[anotherElement.node] 
+                  && anotherElement.toolFeedback == 'bg-success'
+                  && subgraphLabelledPositiveMatches[anotherElement.header.edge.rawText].length >= subgraphLabelledPositiveMatches[element.header.edge.rawText].length;
+              })
+              .filter(function(anotherElement) {
+                var anotherElementExamples = subgraphLabelledPositiveMatches[anotherElement.header.edge.rawText].map(function(example) {
+                  return example.exampleID;
+                });
+                var elementExamples = subgraphLabelledPositiveMatches[element.header.edge.rawText].map(function(example) {
+                  return example.exampleID;
+                });
+                return _.difference(elementExamples, anotherElementExamples).length == 0;
+              });
+          var hasAnotherElementWithSuperset = elementsWithSuperset.length > 0;
+            
+          if (exampleClustersByRole[role].length > 1 && exampleClustersByRole[role][0].score > element.score) {
+            // change feedback to the css class
+            element.toolFeedback = 'bg-danger' 
+            element.whatIf = '<p class="text-white" style="text-decoration: underline; cursor: pointer;">Why?</p>'
+            
+            element.whatifSubgraphA = exampleClustersByRole[role][0].node;
+            element.whatifSubgraphB = element.node;
+            element.whatifSubgraphAColor = 'green';
+            element.whatifSubgraphBColor = 'red';
+
+            var ignoreSubgraphs = window.ignoreSubgraphs;
+            ignoreSubgraphs = ignoreSubgraphs + ',' + element.node;
+            window.ignoreSubgraphs = ignoreSubgraphs;
+          } else {
+            if (hasAnotherElementWithSuperset) {
+              element.toolFeedback = 'bg-warning';
+              // element.whatIf = '<p style="text-decoration: underline; cursor: pointer;">Why?</p>'
+              element.whatifSubgraphA = elementsWithSuperset[0].node;
+              element.whatifSubgraphB = element.node;
+              element.whatifSubgraphAColor = 'green';
+              element.whatifSubgraphBColor = 'yellow';
+
+              var ignoreSubgraphs = window.ignoreSubgraphs;
+              ignoreSubgraphs = ignoreSubgraphs + ',' + element.node;
+              window.ignoreSubgraphs = ignoreSubgraphs;
+              
+            } else {
+              element.toolFeedback = 'bg-success' 
+            }
+          }
+          
+        } else {
+          // remove the element from the list
+          if (window.ignoreSubgraphs && window.ignoreSubgraphs.includes(element.node)) {
+            var ignoreSubgraphs = window.ignoreSubgraphs.split(',');
+            ignoreSubgraphs = ignoreSubgraphs.filter(function(item) {
+              return item !== element.node
+            });
+            window.ignoreSubgraphs = ignoreSubgraphs.join(',');
+          }
+        }
+        
+      });
+
+    });
+    console.log('exampleClustersByRole');
+  console.log(exampleClustersByRole);
+
+  // enumerate over exampleClustersByRole
+  var displayedElementCount=0;
+  for (var clusterKey of ['declaration', 'guard', 'parameter1', 'method', 'exception', 'return',  'error', undefined]) {
+    if (!exampleClustersByRole[clusterKey]) {
+      continue;
+    }
+    var clusters = exampleClustersByRole[clusterKey];
+    clusters.forEach(function(cluster, cluster_i) {
+      cluster['rowNumber'] = displayedElementCount;
+      displayedElementCount += 1;
+    });
+  }
+
+  // as list
+  var keyColors = {
+    'declaration': '120',
+    'guard': '160',
+    'method': '200',
+    'parameter1': '200',
+    'exception': '260',
+    'return': '220',
+    'error': '280',
+  }
+  var roleList = [];
+  for (var key of ['declaration', 'guard', 'parameter1', 'method', 'exception', 'return',  'error', undefined]) {
+    var add = {
+      role: key,
+      cluster: structuredClone(exampleClustersByRole[key]),
+      contextColor: keyColors[key],
+    };
+    roleList.push(add);
+
+    // the examples will go under the cluster of the role
+    if (!add.cluster) {
+      continue;
+    }
+    add.cluster.forEach(function(cluster, cluster_i) {
+      cluster.positiveExamples.forEach(function(example) {
+        example['clusterContext'] = key + '-add-' + cluster.node.replaceAll('(', '').replaceAll(')', '').replaceAll('<', '').replaceAll('>', '').replaceAll(':', '').replaceAll('/', '').replaceAll('[', '').replaceAll(']', '').replaceAll('=', '');
+        example['additionalNode'] = cluster.node;
+      });
+      cluster.negativeExamples.forEach(function(example) {
+        example['clusterContext'] = key + '-removed-' + cluster.node.replaceAll('(', '').replaceAll(')', '').replaceAll('<', '').replaceAll('>', '').replaceAll(':', '').replaceAll('/', '').replaceAll('[', '').replaceAll(']', '').replaceAll('=', '');
+      });
+
+      cluster['contextColor'] = keyColors[key] - cluster_i;
+    });
+    if (add.cluster) {
+      add.cluster.forEach(function(cluster) {
+        cluster['role'] = key;
+      });
+    }
+    add.cluster.forEach(function(cluster) {
+      Meteor.defer(function() {
+        cluster.positiveExamples.concat(cluster.negativeExamples).forEach(function(example) {
+          render(example);
+        });
+      });
+    });
+    
+  }
+
+  // within the `method` role, sort the clusters
+  if (roleList[roleList.indexOf('method')]) {
+
+    // insert "nodes" corresponding to the skelton
+    var subgraphNodeLabels = 
+        Object.keys(skeleton)
+        .filter(function(nodeLabel) {
+          var checked = skeleton[nodeLabel].checked;
+          return checked;
+        })
+        .filter(function(nodeLabel) {
+          return !nodeLabel.includes('->') && nodeLabel.includes('('); // looks like a method call
+        })
+        .map(function(nodeLabel) {
+          return nodeLabel;
+        });
+
+    
+
+    // determine which nodes are positioned behind each subgraphNodeLabel
+
+    // sort the clusters
+    var beforeNodeLabels = {};
+
+    subgraphNodeLabels.forEach(function(nodeLabel) {
+      beforeNodeLabels[nodeLabel] = [];
+      roleList[1].cluster.forEach(function(one_subgraph) {
+        if (one_subgraph.header.otherNode === nodeLabel && !one_subgraph.header.linkedToSource) {
+          
+          beforeNodeLabels[nodeLabel].push(one_subgraph);
+        }
+      });        
+
+      Object.keys(skeleton).filter(element => element.includes('->')).forEach(function(skeletonEdge) {
+        var skeletonEdgeSource = skeletonEdge.split(' -> ')[0];
+        var skeletonEdgeTarget = skeletonEdge.split(' -> ')[1].split(' ')[0];
+
+        // check both are method calls
+        if (!skeletonEdgeSource.includes('(') || !skeletonEdgeTarget.includes('(')) {
+          return;
+        }
+
+        if (skeletonEdgeTarget === nodeLabel) {
+          var otherNode = skeletonEdgeSource;
+
+          beforeNodeLabels[nodeLabel].push(otherNode);
+
+        }
+
+      });
+    });
+
+    // sort the subgraphNodeLabels by length of beforeNodeLabels
+    var sortedNodeLabels = subgraphNodeLabels.sort(function(a, b) {
+      return beforeNodeLabels[a].length - beforeNodeLabels[b].length;
+    });
+
+    var newCluster = []
+    var alreadyInserted = {};
+    // insert the clusters in the sorted order
+    sortedNodeLabels.forEach(function(nodeLabel) {
+      beforeNodeLabels[nodeLabel].forEach(function(subgraph) {
+        if (!subgraph.node || alreadyInserted[subgraph.node]) {
+          return;
+        }
+        newCluster.push(subgraph);
+        alreadyInserted[subgraph.node] = true;
+      });
+      // insert subgraphNodeLabels into the cluster
+      newCluster.push({
+        header: {
+          pseudo: true,
+          edge: {
+            rawText: nodeLabel
+          }
+        },
+        node: nodeLabel,
+        positiveExamples: [],
+        positiveExampleCount: 0,
+        negativeExamples: [],
+        negativeExampleCount: 0,
+        role: 'method',
+        rawText : nodeLabel
+      });
+    });
+    // append remaining subgraphs in cluster 
+    roleList[1].cluster.forEach(function(subgraph) {
+      if (alreadyInserted[subgraph.node]) {
+        return;
+      }
+      newCluster.push(subgraph);
+    });
+
+    roleList[1].cluster = newCluster;;
+  }
+
+  return roleList;
+}
+
 function patternGrowingCandidateNodes(subgraphWithHints) { // TODO, we currently use a dumb method for matching the nodes. Have to upgrade to graph matching
   // find subgraphs already in the skeleton
   // buildSkeleton();
@@ -5777,9 +5799,54 @@ function patternGrowingCandidateNodes(subgraphWithHints) { // TODO, we currently
       
       return filterOnlyLiteralsAndExceptionsAndCalls(node.rawText);
     });
-
   }
-  
+}
+
+function alternativeSubgraphsCandidateNodes(subgraphWithHints) { // TODO, we currently use a dumb method for matching the nodes. Have to upgrade to graph matching
+  // find subgraphs already in the skeleton
+  // buildSkeleton();
+
+  // find altnerative
+  var subgraphs = Subgraphs.find({ '$and': [{ 'alternative': true },] }).fetch();
+
+  var possibleEdges = [];
+    // get nodes that are connected
+    var alreadyAdded = new Set();
+  subgraphs.forEach(function(subgraph) {
+    subgraph.edges.forEach(function(edge) {
+
+        if (!alreadyAdded.has(edge.to)) {
+          edge.linkedToSource = true;
+          possibleEdges.push(edge);
+          alreadyAdded.add(edge.to);
+        }
+      
+        if (!alreadyAdded.has(edge.from)) {
+          edge.linkedToSource = false;
+          possibleEdges.push(edge);
+          alreadyAdded.add(edge.from);
+        }
+      
+      
+    });
+  });
+  return possibleEdges.map(function(edge) {
+    var node  = edge.linkedToSource ? edge.to : edge.from;
+    var otherNode = edge.linkedToSource ? edge.from : edge.to;
+
+    var hasHint = subgraphWithHints[edge.rawText.replaceAll(".", "__")];
+    return { rawText: node, composite:true, linkedToSource: edge.linkedToSource, edge: edge, otherNode: otherNode, toolFeedback: hasHint };
+  })
+  .filter(function(node) {
+    // hide the UNKNOWNs
+    return !node.rawText.includes('UNKNOWN');
+  })  
+  .filter(function(node) {
+
+    // filter stuff that is not a literal or a call
+    
+    return filterOnlyLiteralsAndExceptionsAndCalls(node.rawText);
+  });
 }
 
 function subgraphsToDisplay(viewType) {
@@ -5960,7 +6027,19 @@ function computeSelectorWithAdditionalSubgraphByText(skeleton, subgraphText) {
   singleSubgraphSelector['$and'][0][subgraphText] = {'$exists': true}
   return combineSelectorWithSingleSubgraphSelector(selector, singleSubgraphSelector);
 }
+
+function computeSelectorWithOnlySubgraphByText(skeleton, subgraphText) {
+
+  subgraphText = subgraphText.replace(/\./g, '__') ;
   
+  var singleSubgraphSelector = {
+    '$and': [{}]
+  };
+  singleSubgraphSelector['$and'][0][subgraphText] = {'$exists': true}
+  
+  return singleSubgraphSelector;
+}
+
 
 function computeSelectorWithAdditionalSubgraph(skeleton, subgraphId) {
   var selector = computeSelectorFromSkeleton(skeleton);
