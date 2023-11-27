@@ -203,7 +203,7 @@ def convert(vertmap_path:str, edge_map_path:str, graph_path:str, weighted_node_p
             elif row.startswith('e'):
                 # print(row.split(' ')[3])
                 edges_from[int(row.split(' ')[1])].append((int(row.split(' ')[2]), row.split(' ')[3]))
-
+        
         for from_node in edges_from:
             render_from_node = nodes[from_node] #.replace('<', "[").replace('>', "]")
             # if not edges_from[from_node]:

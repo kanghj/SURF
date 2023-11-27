@@ -13,6 +13,7 @@ export const Subgraphs = new Mongo.Collection('subgraphs');
 export const Bags = new Mongo.Collection('bags');
 export const Queries = new Mongo.Collection('queries');
 export const Config  = new Mongo.Collection('config');
+export const History  = new Mongo.Collection('history');
 
 var request_counter = process.env.STARTING_COUNT ? parseInt(process.env.STARTING_COUNT) : 1;
 var experiment_id = 'test';
@@ -271,7 +272,7 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
 
               if (Subgraphs.find({rawText: text, discriminative: false}).count() == 0 && Subgraphs.find({rawText:text +',-', discriminative:false}).count() == 0 && Subgraphs.find({rawText:text +',+', discriminative:false}).count() == 0) {
 
-                if (Subgraphs.find({discriminative:false}).count() < 3000) { // the user can't handle this many
+                if (Subgraphs.find({discriminative:false}).count() < 3000) { // the user can't handle this many subgraphs anyway and its huge drag on performance
                   // Subgraphs.insert({rawText: text, edges: edges, adjlist: adjlist, discriminative:false, initiallyFrequent:true, debug_added_from: 'f', debug_request_number: request_number});
                   toInsert.push({rawText: text, edges: edges, adjlist: adjlist, discriminative:false, initiallyFrequent:true, debug_added_from: 'f', debug_request_number: request_number});
                 }
@@ -1179,7 +1180,7 @@ var shellOutToMineSubgraphsMultiple = function(graphIds, labels, elementIdToGrap
   });
 
   command.stderr.on('data', function (data) {
-      // console.log('[shellOutToMineSubgraphsMultiple] stderr: ' + data);
+      console.log('[shellOutToMineSubgraphsMultiple] stderr: ' + data);
   });
 
   command.on('exit', Meteor.bindEnvironment(function (code) {
@@ -1728,7 +1729,7 @@ Meteor.methods({
 
     // fetch the subgraphs
     var subgraphs = Subgraphs.find({_id: {$in: subgraphIds}}).fetch();
-    console.log('subgraphs are ' + JSON.stringify(subgraphs));
+    console.log('[updateNodeFeedback] subgraphs are ' + JSON.stringify(subgraphs));
 
     // extract node names
     var nodeNames = [];
@@ -1741,7 +1742,22 @@ Meteor.methods({
       }
       );
       nodeNames = nodeNames.concat(fromNodes).concat(toNodes);
+      // filter away things like '<catch>'
+      nodeNames = nodeNames.filter(function (x) {
+        return !x.startsWith('<');
+      });
     });
+
+    var oldNodeNames = History.find({}).fetch().map(function (history) {
+      return history.node;
+    }) || [];
+
+    nodeNames = nodeNames.concat(oldNodeNames);
+    History.remove({});
+    nodeNames.forEach(function (nodeName) {
+      History.insert({node: nodeName});
+    });
+    console.log('[updateNodeFeedback] nodeNames are ' + JSON.stringify(nodeNames));
 
     var nodesToInclude = nodeNames.filter(function (x, i, a) {
       return a.indexOf(x) == i;

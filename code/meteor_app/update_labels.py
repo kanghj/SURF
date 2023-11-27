@@ -184,7 +184,7 @@ if has_enough_labels:
     # target_subgraph_size = must_include_node_ids.count(',') + 2
     target_subgraph_size = 2
 
-    print((' '.join(["java",'-Xmx32G', "-jar" ,project_path + 'code/meteor_app/misc_scripts/subgraph_miner.jar', '-d' , project_path + 'code/graphs/' + API + '_formatted_onlylabelled_' + experiment_id + str(request_counter) + '.txt',  '-s', '1', '-a', str(target_subgraph_size), '-i', '1', '-m', must_include_node_ids, '-e', exclude_node_ids])))
+    print((' '.join(["java",'-Xmx32G', "-jar" ,project_path + 'code/meteor_app/misc_scripts/subgraph_miner.jar', '-d' , project_path + 'code/graphs/' + API + '_formatted_onlylabelled_' + experiment_id + str(request_counter) + '.txt',  '-s', '1', '-a', str(target_subgraph_size), '-i', '1', '-m', must_include_node_ids, '-e', exclude_node_ids])), file=sys.stderr)
     p1 = subprocess.Popen(["java",'-Xmx32G', "-jar" ,project_path + 'code/meteor_app/misc_scripts/subgraph_miner.jar', '-d' , project_path + 'code/graphs/' + API + '_formatted_onlylabelled_' + experiment_id + str(request_counter) + '.txt',  '-s', '1', '-a', str(target_subgraph_size), '-i', '1', '-m', must_include_node_ids, '-e', exclude_node_ids])
     # for line in p.stdout.readlines():
     #     print(line)
@@ -196,9 +196,8 @@ else:
 
 support = 1
     
+# print('running java (miner for unlabelled   graphs)', ' '.join(["java",'-Xmx32G', "-jar" ,project_path + 'code/meteor_app/misc_scripts/subgraph_miner.jar', '-d' , project_path + 'code/graphs/' + API + '_formatted_onlyunlabelled_' + experiment_id + str(request_counter) + '.txt' , '-s', str(support), '-a', '2', '-i', '1']), file=sys.stderr)
 
-
-print('running java (miner for unlabelled   graphs)', ' '.join(["java",'-Xmx32G', "-jar" ,project_path + 'code/meteor_app/misc_scripts/subgraph_miner.jar', '-d' , project_path + 'code/graphs/' + API + '_formatted_onlyunlabelled_' + experiment_id + str(request_counter) + '.txt' , '-s', str(support), '-a', '2', '-i', '1']))
 # p2 = subprocess.Popen(["java",'-Xmx32G', "-jar" ,project_path + 'code/meteor_app/misc_scripts/frequent_subgraph_miner.jar', '-d' , project_path + 'code/graphs/' + API + '_formatted_onlyunlabelled_' + experiment_id + str(request_counter) + '.txt' , '-s', str(support), '-a', '2', '-i', '1'])
 p2 = subprocess.Popen(["java",'-Xmx32G', "-jar" ,project_path + 'code/meteor_app/misc_scripts/subgraph_miner.jar', '-d' , project_path + 'code/graphs/' + API + '_formatted_onlyunlabelled_' + experiment_id + str(request_counter) + '.txt' , '-s', str(support), '-a', '2', '-i', '1'])
 # for line in p.stdout.readlines():

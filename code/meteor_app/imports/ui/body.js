@@ -839,9 +839,9 @@ var identifyElementRoles = function() {
   
   Object.keys(elementToOutgoingType).forEach(function(element) {
     // a guard is an element that has outgoing "sel"
-    // if (elementToOutgoingType[element] && elementToOutgoingType[element]['(sel)'] && elementToOutgoingType[element]['(sel)'].indexOf("<throw>") == -1) {
-    //   elementsToRole[element] = (elementsToRole[element] || []).concat('guard');
-    // }
+    if (elementToOutgoingType[element] && elementToOutgoingType[element]['(sel)'] && elementToOutgoingType[element]['(sel)'].indexOf("<throw>") == -1) {
+      elementsToRole[element] = (elementsToRole[element] || []).concat('guard');
+    }
 
     // a pre-method call is a method with an order to our focal API
     if (elementToOutgoingType[element] && !element.includes("<init>") && elementToOutgoingType[element]['(order)'] && elementToOutgoingType[element]['(order)'].indexOf(getFocalNode().replace('.','__')) > -1) {
@@ -3511,7 +3511,7 @@ Template.body.events({
     updateNodeFeedback(hintSubgraphs, function() {
       // clear hints
       clearHints();
-      showStatus('Done refining pattern. Once you are done refining the pattern and answering the dataset comprehension questions, click on the "End Task" button at the bottom of this pane.');
+      showStatus('Done refining pattern.');
       hideLoadingText();
       buildSkeleton();
     });
