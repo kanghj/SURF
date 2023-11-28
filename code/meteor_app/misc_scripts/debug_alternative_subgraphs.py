@@ -13,7 +13,6 @@ project_path = cwd.split('SURF')[0] + 'SURF/'
 def guess_path_to_alternative_subgraph_file(API:str) -> Path:
     base_dir = project_path + "code/graphs/"
     file_name = API + "_formatted_onlylabelled_" + experiment_id + str(request_counter) + "_result_alternative_subgraphs.txt"
-
     return base_dir + file_name
 
 def path_to_vert_map_file(API:str) -> str:
@@ -100,7 +99,7 @@ def debug2():
     
     sorted_best_subgraphs = sorted(best_subgraphs.items(), key=lambda x: x[1], reverse=True)
     # filter away the ones that are not the highest score
-    sorted_best_subgraphs = [x for x in best_subgraphs.items() if x[1] == highest_score]
+    # sorted_best_subgraphs = [x for x in best_subgraphs.items() if x[1] == highest_score]
     
     sorted_best_subgraphs = [x[0] for x in sorted_best_subgraphs][:200]
     # print(sorted_best_subgraphs)
@@ -144,7 +143,6 @@ def convert(vertmap_path:str, edge_map_path:str, graph_path:str, only_show:list)
         for line in graph_file:
             line = line.strip()
             if line.startswith('t'):
-                # print('has graphs')
                 splitted = line.split(' ')
                 current_id = int(splitted[2])
 
@@ -162,26 +160,27 @@ def convert(vertmap_path:str, edge_map_path:str, graph_path:str, only_show:list)
 
             elif line.startswith('e'):
                 splitted = line.split(' ')
+                if always_show or current_id in only_show:
             
-                edge_name = edge_map[int(splitted[3])] 
-                from_edge_index = int(splitted[1])
-                to_edge_index = int(splitted[2])
-                from_edge =  current_graph_vertices[from_edge_index]
-                to_edge   =  current_graph_vertices[to_edge_index]
+                    edge_name = edge_map[int(splitted[3])] 
+                    from_edge_index = int(splitted[1])
+                    to_edge_index = int(splitted[2])
+                    from_edge =  current_graph_vertices[from_edge_index]
+                    to_edge   =  current_graph_vertices[to_edge_index]
 
-                if '_lower_to_higher' in edge_name:
-                    edge_name = edge_name.replace('_lower_to_higher', '')
-                    # check if from_edge and to_edge are from lower to higher
-                    if from_edge > to_edge:
-                        from_edge_index, to_edge_index = to_edge_index, from_edge_index
+                    if '_lower_to_higher' in edge_name:
+                        edge_name = edge_name.replace('_lower_to_higher', '')
+                        # check if from_edge and to_edge are from lower to higher
+                        if from_edge > to_edge:
+                            from_edge_index, to_edge_index = to_edge_index, from_edge_index
 
-                elif '_higher_to_lower' in edge_name:
-                    edge_name = edge_name.replace('_higher_to_lower', '')
-                    # check if from_edge and to_edge are from higher to lower
-                    if from_edge < to_edge:
-                        from_edge_index, to_edge_index = to_edge_index, from_edge_index                        
+                    elif '_higher_to_lower' in edge_name:
+                        edge_name = edge_name.replace('_higher_to_lower', '')
+                        # check if from_edge and to_edge are from higher to lower
+                        if from_edge < to_edge:
+                            from_edge_index, to_edge_index = to_edge_index, from_edge_index                        
 
-                content[current_id] += "e " + str(from_edge_index) + " " + str(to_edge_index) + " " + edge_name + "\n"
+                    content[current_id] += "e " + str(from_edge_index) + " " + str(to_edge_index) + " " + edge_name + "\n"
 
             else:
                 continue

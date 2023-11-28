@@ -5466,7 +5466,7 @@ function determineChoicesOfCandidates(findCandidateNodes, computeSelectorAfterFe
           return;
         }
 
-        if (exampleClustersByRole[role] && exampleClustersByRole[role].length >= 3 && !getFocalAPI().includes(element.node)&& !element.toolFeedback ) {
+        if (exampleClustersByRole[role] && exampleClustersByRole[role].length >= 3 && !getFocalNode().includes(element.node)&& !element.toolFeedback ) {
           return;
         }
 

@@ -423,6 +423,7 @@ function resetDatabase() {
   Bags.remove({});
   Queries.remove({});
   Config.remove({});
+  History.remove({});
   // console.log('reload',reload);
   // run script to reset graph mining data
   spawn = Npm.require('child_process').spawn;
@@ -1578,10 +1579,7 @@ Meteor.methods({
 
         console.log('infer patterns:: one subgraph edge target = ' + target);
       }
-
-
     });
-  
 
     // nodes.forEach(function (node) {
     //   Subgraphs.insert(node);
@@ -1596,7 +1594,7 @@ Meteor.methods({
     });
 
 
-    // hide the query examples
+    // hide the query examples, if there are any
     Examples.update({query: true}, {$set: {query: 'false'}}, {multi : true});
     
 

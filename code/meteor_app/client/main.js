@@ -39,21 +39,24 @@ Meteor.startup(function(){
 
     Session.set('subjectNum',-1); //update for each subject
     // Session.set('dataset', APIshortName); //'findViewById'); //update for each subject
-    Session.set('dataset', config.APIshortName); 
-    // Session.set('focalAPI', 'Cipher__init()');
-    // Session.set('focalAPI', API.split('.')[2] + '()');
-    Session.set('focalAPI', config.API.split('.')[2] + '()');
+    if (config) {
+        Session.set('dataset', config.APIshortName); 
+        // Session.set('focalAPI', 'Cipher__init()');
+        // Session.set('focalAPI', API.split('.')[2] + '()');
+        Session.set('focalAPI', config.API.split('.')[2] + '()');
+        
 
-    var API = config.API;
-    if (API.includes('javax.crypto.Cipher__init')) {
-        APIfocalNode = "Cipher.getInstance()";
-    } else if (API.includes('java.security.MessageDigest__digest')) {
-        APIfocalNode = "MessageDigest.getInstance()";
-    } else if (API.includes('java.security.SecureRandom__Key')) {
-        APIfocalNode = "SecureRandom.<init>";
-    } 
+        var API = config.API;
+        if (API.includes('javax.crypto.Cipher__init')) {
+            APIfocalNode = "Cipher.getInstance()";
+        } else if (API.includes('java.security.MessageDigest__digest')) {
+            APIfocalNode = "MessageDigest.getInstance()";
+        } else if (API.includes('java.security.SecureRandom__Key')) {
+            APIfocalNode = "SecureRandom.<init>";
+        } 
 
-    Session.set('focalNode', APIfocalNode);
+        Session.set('focalNode', APIfocalNode);
+    }
 
     Session.set('view', 'all');
     //create object which maps user id to correct dataset?
