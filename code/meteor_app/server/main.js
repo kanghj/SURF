@@ -90,6 +90,9 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
   // remove 'alternative' subgraphs
   Subgraphs.remove({'$and': [{'alternative': true}, { 'labelled': {'$ne': true} }, { '$or': [ {'bag' : {'$exists': false}}, {'bag': {$eq: null}}  ]}]});
 
+  // how many user feedback has been given?
+  var numUserFeedback = History.find({}).count();
+
   command.stdout.on('data',  Meteor.bindEnvironment(function (data) {
     data = data.toString();
 
@@ -176,7 +179,9 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
 
           if (showImmediately) {
 
-            Subgraphs.insert({rawText: text.replace(/\./g, '__'), edges: edges, adjlist: adjlist, discriminative:true, alternative: true, isPattern:isPattern, debug_added_from:'d', hidden: !showImmediately, labelled:false, debug_request_number: request_number});
+            if (i < numUserFeedback + 1) {
+              Subgraphs.insert({rawText: text.replace(/\./g, '__'), edges: edges, adjlist: adjlist, discriminative:true, alternative: true, isPattern:isPattern, debug_added_from:'d', hidden: !showImmediately, labelled:false, debug_request_number: request_number});
+            }
           }
           else {
             Subgraphs.insert({rawText: text, edges: edges, adjlist: adjlist, discriminative:true, alternative: true, isPattern:isPattern, debug_added_from:'d', hidden: !showImmediately, labelled:false, debug_request_number: request_number});
