@@ -27,9 +27,9 @@ final class Aes128Gcm implements Aead {
      */
     private byte[] aeadImpl(int cipherMode, byte[] key, byte[] nonce, byte[] aad, byte[] text) {
         try {
-            var cipher  = Cipher.getInstance("AES/GCM/NoPadding");
-            var gcmSpec = new GCMParameterSpec(nT() * 8/* in bits */, nonce);
-            var aesKey  = new SecretKeySpec(key, "AES");
+            Cipher cipher  = Cipher.getInstance("AES/GCM/NoPadding");
+            GCMParameterSpec gcmSpec = new GCMParameterSpec(nT() * 8/* in bits */, nonce);
+            SecretKeySpec aesKey  = new SecretKeySpec(key, "AES");
             cipher.init(cipherMode, aesKey, gcmSpec);
             cipher.updateAAD(aad);
             return cipher.doFinal(text);
