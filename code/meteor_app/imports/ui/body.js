@@ -2806,7 +2806,7 @@ Template.body.helpers({
     var examples = fetchShortestExamples(selector).fetch();
 
     // include unlabelled examples
-    examples = examples.concat(Examples.find({'label': '?'}).fetch());
+    // examples = examples.concat(Examples.find({'label': '?'}).fetch());
 
     // examples.forEach(function(example) {
     //   example['clusterContext'] = 'baseline';
@@ -3495,9 +3495,9 @@ Template.body.events({
     // showStatus('Inferring a pattern... Once the pattern appears, you can end the task by clicking on "End Task".');
     Session.set('taskComplete', true);
 
-    $('#taskCompleteModal').modal('show');;
+    // $('#taskCompleteModal').modal('show');;
 
-    endTask();
+    // endTask();
   },
   'click .refine-pattern-btn' (event, instance) {
 

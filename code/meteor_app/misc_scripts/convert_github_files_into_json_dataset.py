@@ -87,7 +87,10 @@ json_obj = convert_to_json(get_all_java_files())
 with open('cryptoapi_bench_init2.json', 'w') as f:
     f.write(json_obj)
 print('wrote to the present directory. Move it to where Active learning interface expects it to be.')
-
+print('e.g., mv cryptoapi_bench_init2.json cryptoapi_bench_init.json')
+print('e.g., cp cryptoapi_bench_init.json private/')
+print(' then run HJGraphBuilderForActiveLearningInterface')
+print(' cp ~/repos/MUDetect/src2egroum2aug/output/javax.crypto.Cipher__init/* ../meteor_app/private/original_graphs/')
 
 # next, move the source files into /Users/.../repos/active_learning_interface/SURF/code/meteor_app/full_source/cryptoapi_bench_Cipher
 if not os.path.exists(project_path + '/SURF/code/meteor_app/full_source/cryptoapi_bench_Cipher'):

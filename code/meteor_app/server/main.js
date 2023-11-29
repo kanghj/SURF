@@ -320,7 +320,7 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
       command.stdout.on('data',  Meteor.bindEnvironment(function (data) {
         data = data.toString();
 
-        console.log('[alternative] subgraphs read: ' + data.toString());
+        // console.log('[alternative] subgraphs read: ' + data.toString());
         // var text = '';
         for (var i=0; i< data.split('\n').length && i < 100; i++){ // TODO: remove the 100 limit
           var text = data.split('\n')[i];
@@ -383,8 +383,8 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
               
               // if (Subgraphs.find({rawText: text, alternative: true}).count() == 0 ) {
                 Subgraphs.insert({ rawText: text, edges: edges, adjlist: adjlist, alternative:true, initiallyFrequent:false, debug_added_from: 'a', debug_request_number: request_number});
-                console.log('[alternative, discriminative=false] inserted  '+ text + ' with subgraphId=' + (totalDiscriminativeAndFrequentSubgraphs+i));
-              // } else {
+                // console.log('[alternative, discriminative=false] inserted  '+ text + ' with subgraphId=' + (totalDiscriminativeAndFrequentSubgraphs+i));
+              // } else { 
               //   console.log('[alternative, discriminative=false] already exists, skipping:' + text);
               // }
               
