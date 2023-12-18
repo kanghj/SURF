@@ -2715,6 +2715,17 @@ Template.body.helpers({
         });
       }
     }
+    // if its an exception
+    // insert a non-composite header in the catch (...) part
+    if (exampleClustersByRole['exception']) {
+      exampleClustersByRole['exception'].forEach(function(subgraph) {
+        if (subgraph.header && subgraph.header.rawText) {
+          subgraph.header.composite = false;
+        }
+      });
+
+    }
+
 
     // as list
     var keyColors = {
@@ -4935,6 +4946,7 @@ var helpers = {
     return node;
   },
   displayHeader: function(node) {
+
     if (node.composite) {
       if (node.edge.label.includes('order')) {
         var precedingNode = node.edge.rawText.split(' -> ')[0];
@@ -5508,13 +5520,18 @@ function determineChoicesOfCandidates(findCandidateNodes, computeSelectorAfterFe
                 return _.difference(elementExamples, anotherElementExamples).length == 0;
               });
           var hasAnotherElementWithSuperset = elementsWithSuperset.length > 0;
-            
-          if (exampleClustersByRole[role].length > 1 && exampleClustersByRole[role][0].score > element.score) {
+          var elementsWithHintAndSuperset = elementsWithSuperset.filter(function(anotherElement) {
+            return anotherElement.header.edge.rawText.replaceAll('.', '__') in subgraphWithHints;
+          });
+          var oneElementWithHintAndSuperset = elementsWithHintAndSuperset.length > 0 ? elementsWithHintAndSuperset[0] : undefined;
+          
+          var comparedElement = oneElementWithHintAndSuperset; // exampleClustersByRole[role].length > 1  ? exampleClustersByRole[role][0] : undefined;
+          if (comparedElement && comparedElement.score > element.score) {
             // change feedback to the css class
             element.toolFeedback = 'bg-danger' 
             element.whatIf = '<p class="text-white" style="text-decoration: underline; cursor: pointer;">Why?</p>'
             
-            element.whatifSubgraphA = exampleClustersByRole[role][0].node;
+            element.whatifSubgraphA = comparedElement.node;
             element.whatifSubgraphB = element.node;
             element.whatifSubgraphAColor = 'green';
             element.whatifSubgraphBColor = 'red';
@@ -5526,7 +5543,7 @@ function determineChoicesOfCandidates(findCandidateNodes, computeSelectorAfterFe
             if (hasAnotherElementWithSuperset) {
               element.toolFeedback = 'bg-warning';
               // element.whatIf = '<p style="text-decoration: underline; cursor: pointer;">Why?</p>'
-              element.whatifSubgraphA = elementsWithSuperset[0].node;
+              element.whatifSubgraphA = oneElementWithHintAndSuperset ? oneElementWithHintAndSuperset : elementsWithSuperset[0].node;
               element.whatifSubgraphB = element.node;
               element.whatifSubgraphAColor = 'green';
               element.whatifSubgraphBColor = 'yellow';
@@ -5541,7 +5558,7 @@ function determineChoicesOfCandidates(findCandidateNodes, computeSelectorAfterFe
           }
           
         } else {
-          // remove the element from the list
+          // if ignoreSubgraphs, remove the element from the list
           if (window.ignoreSubgraphs && window.ignoreSubgraphs.includes(element.node)) {
             var ignoreSubgraphs = window.ignoreSubgraphs.split(',');
             ignoreSubgraphs = ignoreSubgraphs.filter(function(item) {
