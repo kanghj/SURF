@@ -2453,7 +2453,7 @@ Template.body.helpers({
         return 0;
       } else {
         // sort by exampleID
-        return a['exampleID'] - b['exampleID'];
+        return  b['exampleID'] - a['exampleID'];
       }
     });
     return examples;
@@ -2494,7 +2494,7 @@ Template.body.helpers({
         return 0;
       } else {
         // sort by exampleID
-        return a['exampleID'] - b['exampleID'];
+        return  b['exampleID'] - a['exampleID'];
       }
     });
     return examples;
@@ -2527,6 +2527,16 @@ Template.body.helpers({
   clusteredExamplesForAlternative() {
     return determineChoicesOfCandidates(alternativeSubgraphsCandidateNodes, computeSelectorWithOnlySubgraphByText);
     
+  },
+
+  clusteredExamplesFollowingConfig() {
+    var config = Config.findOne({});
+    if (config.showStreamlined) {
+      return determineChoicesOfCandidates(patternGrowingCandidateNodes, computeSelectorWithAdditionalSubgraphByText);
+    } else {
+      return determineChoicesOfCandidates(alternativeSubgraphsCandidateNodes, computeSelectorWithOnlySubgraphByText);
+    }
+
   },
 
   discriminativeSubgraphsSkeleton() {
