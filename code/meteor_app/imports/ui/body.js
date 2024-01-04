@@ -2534,7 +2534,7 @@ Template.body.helpers({
     if (config.showStreamlined) {
       return determineChoicesOfCandidates(patternGrowingCandidateNodes, computeSelectorWithAdditionalSubgraphByText);
     } else {
-      return determineChoicesOfCandidates(alternativeSubgraphsCandidateNodes, computeSelectorWithOnlySubgraphByText);
+      return determineChoicesOfCandidates(alternativeSubgraphsCandidateNodes, computeSelectorWithAdditionalSubgraphByText);// computeSelectorWithOnlySubgraphByText);
     }
 
   },

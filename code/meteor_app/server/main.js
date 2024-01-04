@@ -143,6 +143,10 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
                 console.log('UNKNOWN found, skipping');
                 continue;
               }
+              if (nodeLabel1.includes('debug') || nodeLabel2.includes('debug') ) {
+                console.log('debug found, skipping');
+                continue;
+              }
     
 
               if (nodeLabel1.includes('.')) {
@@ -170,6 +174,10 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
             }
             if (nodeLabel1 == 'UNKNOWN' || nodeLabel2 == 'UNKNOWN' ) {
               console.log('UNKNOWN found, skipping');
+              continue;
+            }
+            if (nodeLabel1.includes('debug') || nodeLabel2.includes('debug') ) {
+              console.log('debug found, skipping');
               continue;
             }
             
@@ -241,6 +249,10 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
                 if (nodeLabel1 == 'UNKNOWN' || nodeLabel2 == 'UNKNOWN' || !nodeLabel1 || !nodeLabel2) {
                   continue;
                 }
+                if (nodeLabel1.includes('debug') || nodeLabel2.includes('debug') ) {
+                  console.log('debug found, skipping');
+                  continue;
+                }
 
                 if (nodeLabel1.includes('.')) {
                   nodeLabel1 = nodeLabel1.replace(/\./g, '__');
@@ -267,6 +279,10 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
               }
               if (nodeLabel1 == 'UNKNOWN' || nodeLabel2 == 'UNKNOWN' ) {
                 console.log('UNKNOWN found, skipping');
+                continue;
+              }
+              if (nodeLabel1.includes('debug') || nodeLabel2.includes('debug') ) {
+                console.log('debug found, skipping');
                 continue;
               }
               
@@ -348,10 +364,15 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
                   if (nodeLabel1 == 'UNKNOWN' || nodeLabel2 == 'UNKNOWN' ) {
                     continue;
                   }
+                  if (nodeLabel1.includes('debug') || nodeLabel2.includes('debug') ) {
+                    console.log('debug found, skipping');
+                    continue;
+                  }
 
                   if (nodeLabel1.includes('.')) {
                     nodeLabel1 = nodeLabel1.replace(/\./g, '__');
                   }
+                  // console.log('fragmentParts', fragmentParts);
                   if (nodeLabel2.includes('.')) {
                     nodeLabel2 = nodeLabel2.replace(/\./g, '__');
                   }
@@ -375,6 +396,10 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
                 }
                 if (nodeLabel1 == 'UNKNOWN' || nodeLabel2 == 'UNKNOWN' ) {
                   console.log('UNKNOWN found, skipping');
+                  continue;
+                }
+                if (nodeLabel1.includes('debug') || nodeLabel2.includes('debug') ) {
+                  console.log('debug found, skipping');
                   continue;
                 }
                 
@@ -1533,6 +1558,10 @@ Meteor.methods({
       if ( 
         oneSubgraph.isPattern)
         // (node1.includes('(') || node2.includes('(') || node1.includes('init') || node2.includes('init'))) { // favour positive patterns and method calls
+        // avoid non-methods, non-identifiers
+        if (node1.length <= 3 || node2.length <= 3) {
+          return
+        }
         if (!subgraph) {
           subgraph = oneSubgraph;
         }
@@ -1905,14 +1934,18 @@ Meteor.methods({
     var baseline = isBaseline ? '_baseline' : '';
     var filename = dir + '_' + subjectNum + '_' + baseline + '_discriminativeSubgraphs.txt';
     
-    console.log(filename);
-    fs.writeFile(filename, discriminativeSubgraphsText, function(err) {
-      if(err) {
-        return console.log(err);
+    var collectData = false;
+
+    if (collectData) {
+      console.log(filename);
+      fs.writeFile(filename, discriminativeSubgraphsText, function(err) {
+        if(err) {
+          return console.log(err);
+        }
+        console.log("The file was saved!");
       }
-      console.log("The file was saved!");
+      );
     }
-    );
 
   
   },
