@@ -75,7 +75,7 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
   // or the patterns that are already labeled
   if (focalNode == 'pseudo-node' || eraseOld) {
   
-    console.log('clear  subgraphs and more');
+    // console.log('clear  subgraphs and more');
     var  a = Subgraphs.remove({'$and': [{ 'labelled': {'$ne': true} }, {'hint':{'$ne': true} } ,{ '$or': [ {'bag' : {'$exists': false}}, {'bag': {$eq: null}}  ]}]});
     console.log(a);
   } 
@@ -83,11 +83,11 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
 
   spawn = Npm.require('child_process').spawn;
 
-  console.log('reading subgraphs');
-  console.log('request_number', request_number);
+  // console.log('reading subgraphs');
+  // console.log('request_number', request_number);
   
   command = spawn('python3',[appPath + "misc_scripts/debug_subgraphs.py", experiment_id, request_number, API]);
-  console.log('python3',[appPath + "misc_scripts/debug_subgraphs.py", experiment_id, request_number, API].join(' '));
+  // console.log('python3',[appPath + "misc_scripts/debug_subgraphs.py", experiment_id, request_number, API].join(' '));
 
   // remove 'alternative' subgraphs
   Subgraphs.remove({'$and': [{'alternative': true}, { 'labelled': {'$ne': true} }, { '$or': [ {'bag' : {'$exists': false}}, {'bag': {$eq: null}}  ]}]});
@@ -99,11 +99,11 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
     data = data.toString();
 
     Subgraphs.find({discriminative:true, hidden:true, labelled:false}).forEach(function(subgraph) {
-      console.log('[discriminative=true] removing subgraph: ' + subgraph.rawText);
+      // console.log('[discriminative=true] removing subgraph: ' + subgraph.rawText);
       Subgraphs.remove({_id: subgraph._id});
     });
 
-    console.log('subgraphs read: ' + data.toString());
+    // console.log('subgraphs read: ' + data.toString());
     // var text = '';
     for (var i=0; i<data.split('\n').length; i++){
       var text = data.split('\n')[i];
@@ -140,11 +140,11 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
 
               // temporary, ignore UNKNOWNs
               if (nodeLabel1 == 'UNKNOWN' || nodeLabel2 == 'UNKNOWN' ) {
-                console.log('UNKNOWN found, skipping');
+                // console.log('UNKNOWN found, skipping');
                 continue;
               }
               if (nodeLabel1.includes('debug') || nodeLabel2.includes('debug') ) {
-                console.log('debug found, skipping');
+                // console.log('debug found, skipping');
                 continue;
               }
     
@@ -177,7 +177,7 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
               continue;
             }
             if (nodeLabel1.includes('debug') || nodeLabel2.includes('debug') ) {
-              console.log('debug found, skipping');
+              // console.log('debug found, skipping');
               continue;
             }
             
@@ -198,7 +198,7 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
           }
             
 
-            console.log('[discriminative=true] inserted  '+ text + ' with subgraphId=' + i);
+            // console.log('[discriminative=true] inserted  '+ text + ' with subgraphId=' + i);
           
 
           
@@ -210,12 +210,12 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
     var totalDiscriminativeSubgraphs = i;
     // console.log('totalDiscriminativeSubgraphs =', totalDiscriminativeSubgraphs);
 
-    console.log('console.log(Subgraphs.find({discriminative:true}).count()); = '  +Subgraphs.find({discriminative:true}).count());
+    // console.log('console.log(Subgraphs.find({discriminative:true}).count()); = '  +Subgraphs.find({discriminative:true}).count());
 
     spawn = Npm.require('child_process').spawn;
 
     focalNode = focalNode.replace('__', '.');
-    console.log('reading frequent subgraphs', 'python3', [appPath + "misc_scripts/debug_frequent_subgraphs.py", experiment_id, request_number, API, focalNode].join(' '));
+    // console.log('reading frequent subgraphs', 'python3', [appPath + "misc_scripts/debug_frequent_subgraphs.py", experiment_id, request_number, API, focalNode].join(' '));
     command = spawn('python3',[appPath + "misc_scripts/debug_frequent_subgraphs.py", experiment_id, request_number, API, focalNode])
 
     
@@ -250,7 +250,7 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
                   continue;
                 }
                 if (nodeLabel1.includes('debug') || nodeLabel2.includes('debug') ) {
-                  console.log('debug found, skipping');
+                  // console.log('debug found, skipping');
                   continue;
                 }
 
@@ -278,11 +278,11 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
                 nodeLabel1 = nodeLabel1.replace(/\./g, '__');
               }
               if (nodeLabel1 == 'UNKNOWN' || nodeLabel2 == 'UNKNOWN' ) {
-                console.log('UNKNOWN found, skipping');
+                // console.log('UNKNOWN found, skipping');
                 continue;
               }
               if (nodeLabel1.includes('debug') || nodeLabel2.includes('debug') ) {
-                console.log('debug found, skipping');
+                // console.log('debug found, skipping');
                 continue;
               }
               
@@ -311,10 +311,10 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
       // insert 
       if (toInsert && toInsert.length > 0) {
         Subgraphs.batchInsert(toInsert);
-        console.log('inserted ' + toInsert.length + ' subgraphs');
+        // console.log('inserted ' + toInsert.length + ' subgraphs');
       }
 
-      console.log('console.log(Subgraphs.find({discriminative:false}).count()); = '  +Subgraphs.find({discriminative:false}).count() + ' focal: ' + focalNode);
+      // console.log('console.log(Subgraphs.find({discriminative:false}).count()); = '  +Subgraphs.find({discriminative:false}).count() + ' focal: ' + focalNode);
     }));
 
     command.stderr.on('data', function (data) {
@@ -322,16 +322,16 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
     });
 
     var totalDiscriminativeAndFrequentSubgraphs = totalDiscriminativeSubgraphs + i;
-    console.log('totalDiscriminativeAndFrequentSubgraphs =', totalDiscriminativeAndFrequentSubgraphs);
+    // console.log('totalDiscriminativeAndFrequentSubgraphs =', totalDiscriminativeAndFrequentSubgraphs);
 
-    console.log('console.log(Subgraphs.find({}).count()); = '  +Subgraphs.find({}).count());
+    // console.log('console.log(Subgraphs.find({}).count()); = '  +Subgraphs.find({}).count());
 
     var fetchAlternatives = true;
 
     if (fetchAlternatives) {
       spawn = Npm.require('child_process').spawn;
 
-      console.log('reading alternative subgraphs', 'python3',[appPath + "misc_scripts/debug_alternative_subgraphs.py", experiment_id, request_number, API].join( ' '));
+      // console.log('reading alternative subgraphs', 'python3',[appPath + "misc_scripts/debug_alternative_subgraphs.py", experiment_id, request_number, API].join( ' '));
       command = spawn('python3',[appPath + "misc_scripts/debug_alternative_subgraphs.py", experiment_id, request_number, API]);
 
       
@@ -365,7 +365,7 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
                     continue;
                   }
                   if (nodeLabel1.includes('debug') || nodeLabel2.includes('debug') ) {
-                    console.log('debug found, skipping');
+                    // console.log('debug found, skipping');
                     continue;
                   }
 
@@ -395,11 +395,11 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
                   nodeLabel1 = nodeLabel1.replace(/\./g, '__');
                 }
                 if (nodeLabel1 == 'UNKNOWN' || nodeLabel2 == 'UNKNOWN' ) {
-                  console.log('UNKNOWN found, skipping');
+                  // console.log('UNKNOWN found, skipping');
                   continue;
                 }
                 if (nodeLabel1.includes('debug') || nodeLabel2.includes('debug') ) {
-                  console.log('debug found, skipping');
+                  // console.log('debug found, skipping');
                   continue;
                 }
                 
@@ -420,8 +420,8 @@ var shellOutToReadSubgraphs = function(request_number, focalNode, eraseOld, show
           }
         }
         
-        console.log('console.log(Subgraphs.find({alternative:true}).count()); = '  +Subgraphs.find({alternative:true}).count());
-        console.log('console.log(Subgraphs.find({).count()); = '  +Subgraphs.find({}).count());
+        // console.log('console.log(Subgraphs.find({alternative:true}).count()); = '  +Subgraphs.find({alternative:true}).count());
+        // console.log('console.log(Subgraphs.find({).count()); = '  +Subgraphs.find({}).count());
       }));
     }
 
@@ -491,7 +491,7 @@ function resetDatabase() {
 
         if (doc['test']) {
           TestExamples.insert(doc);
-          console.log('insert test!');
+          // console.log('insert test!');
         } else {
           Examples.insert(doc);
         }
@@ -1196,15 +1196,15 @@ var shellOutToMineSubgraphsMultiple = function(graphIds, labels, elementIdToGrap
   var request_number = request_counter;
   // this also runs the code that mines the subgraphs
   
-  console.log('spawining child process for mining subgraphs. target graph ids', graphIds, labels);
+  // console.log('spawining child process for mining subgraphs. target graph ids', graphIds, labels);
   
   // join graphIds by comma
   var joinedGraphId = graphIds.join(',');
   nodesToInclude = nodesToInclude.join(',');
-  console.log('spawnin...' + 'python3',[appPath + "update_labels.py", joinedGraphId, labels, encoded, experiment_id, request_counter, API, focalNode, nodesToInclude]);
+  // console.log('spawnin...' + 'python3',[appPath + "update_labels.py", joinedGraphId, labels, encoded, experiment_id, request_counter, API, focalNode, nodesToInclude]);
   command = spawn('python3',[appPath + "update_labels.py", joinedGraphId, labels, encoded, experiment_id, request_counter, API, focalNode, nodesToInclude]);
 
-  console.log('request_counter = ' + request_counter);
+  // console.log('request_counter = ' + request_counter);
   // Session.set('request_counter', request_counter + 1);
   request_counter += 1;
 
@@ -1213,11 +1213,11 @@ var shellOutToMineSubgraphsMultiple = function(graphIds, labels, elementIdToGrap
   });
 
   command.stderr.on('data', function (data) {
-      console.log('[shellOutToMineSubgraphsMultiple] stderr: ' + data);
+      // console.log('[shellOutToMineSubgraphsMultiple] stderr: ' + data);
   });
 
   command.on('exit', Meteor.bindEnvironment(function (code) {
-    console.log('child process exited with code ' + code);
+    // console.log('child process exited with code ' + code);
     shellOutToReadSubgraphs(request_number, focalNode, eraseOld, showImmediately);
 
     // shellOutToMinePatternsMultiple(graphIds, labels, elementIdToGraphId);
@@ -1552,7 +1552,7 @@ Meteor.methods({
     
     Subgraphs.find({discriminative: true, hidden: true}).fetch().forEach(function (oneSubgraph) {
 
-      console.log('infer patterns! Subgraphs found = ' + JSON.stringify(oneSubgraph));
+      // console.log('infer patterns! Subgraphs found = ' + JSON.stringify(oneSubgraph));
       var node1 = oneSubgraph.rawText.split(' -> ')[0];
       var node2 = oneSubgraph.rawText.split(' -> ')[1].split(' ')[0];
       if ( 
@@ -1568,7 +1568,7 @@ Meteor.methods({
       // }
     });
     
-    console.log('infer patterns! Subgraphs found = ' + JSON.stringify(Subgraphs.find({discriminative: true, hidden: true}).fetch()));
+    // console.log('infer patterns! Subgraphs found = ' + JSON.stringify(Subgraphs.find({discriminative: true, hidden: true}).fetch()));
 
     if (!subgraph) {
       console.log('not suitable pattern found...')
@@ -1579,14 +1579,14 @@ Meteor.methods({
     // create new nodes for each edge's source and target
     var nodes = [];
     
-    console.log('infer patterns:: one subgraph  = ' + subgraph.rawText);
+    // console.log('infer patterns:: one subgraph  = ' + subgraph.rawText);
 
     var edges = subgraph.edges;
     edges.forEach(function (edge) {
       var source = edge.from;
       var target = edge.to;
       
-      console.log('infer patterns:: one subgraph edge = ' + edge.rawText);
+      // console.log('infer patterns:: one subgraph edge = ' + edge.rawText);
 
 
       var adjlist = {};
@@ -1600,7 +1600,7 @@ Meteor.methods({
 
         nodes.push(sourceNode);
 
-        console.log('infer patterns:: one subgraph edge source = ' + source);
+        // console.log('infer patterns:: one subgraph edge source = ' + source);
       }
 
       if (target) {
@@ -1613,7 +1613,7 @@ Meteor.methods({
 
         nodes.push(targetNode);
 
-        console.log('infer patterns:: one subgraph edge target = ' + target);
+        // console.log('infer patterns:: one subgraph edge target = ' + target);
       }
     });
 
@@ -1625,7 +1625,7 @@ Meteor.methods({
       if (error) {
         console.log('[infer patterns] error when inserting new subgraph---->' + error);
       } else {
-        console.log('[infer patterns] inserted new subgraph with id ' + result);
+        // console.log('[infer patterns] inserted new subgraph with id ' + result);
       }
     });
 
@@ -1634,7 +1634,7 @@ Meteor.methods({
     Examples.update({query: true}, {$set: {query: 'false'}}, {multi : true});
     
 
-    console.log('infer patterns!');
+    // console.log('infer patterns!');
   },
   'addHint'({text, value}) {
 
@@ -1668,12 +1668,13 @@ Meteor.methods({
       adjlist: adjlist,
       edges: edges
     };
-    console.log('[addHint] inserting newSubgraph', newSubgraph);
+    console.log('add hint')
+    
     Subgraphs.insert(newSubgraph, function (error, result) {
       if (error) {
         console.log('[ addHint] error when inserting new subgraph---->' + error);
       } else {
-        console.log('[addHint] inserted new subgraph with id ' + result);
+        // console.log('[addHint] inserted new subgraph with id ' + result);
       }
     });
 
@@ -1763,7 +1764,7 @@ Meteor.methods({
 
     // fetch the subgraphs
     var subgraphs = Subgraphs.find({_id: {$in: subgraphIds}}).fetch();
-    console.log('[updateNodeFeedback] subgraphs are ' + JSON.stringify(subgraphs));
+    // console.log('[updateNodeFeedback] subgraphs are ' + JSON.stringify(subgraphs));
 
     // extract node names
     var nodeNames = [];
@@ -1791,7 +1792,7 @@ Meteor.methods({
     nodeNames.forEach(function (nodeName) {
       History.insert({node: nodeName});
     });
-    console.log('[updateNodeFeedback] nodeNames are ' + JSON.stringify(nodeNames));
+    // console.log('[updateNodeFeedback] nodeNames are ' + JSON.stringify(nodeNames));
 
     var nodesToInclude = nodeNames.filter(function (x, i, a) {
       return a.indexOf(x) == i;

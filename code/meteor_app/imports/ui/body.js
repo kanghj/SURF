@@ -366,7 +366,7 @@ var updateLabels = function(exampleId, methodName, label, keyword, nextFunction)
       alert(err);
     } else {
       // success!
-      console.log('[updateLabels] succeded in updating labels')
+      // console.log('[updateLabels] succeded in updating labels')
       clearSummary();
       if (nextFunction)
         nextFunction();
@@ -2552,8 +2552,8 @@ Template.body.helpers({
     var hastoolFeedback = {};
     var headerCount = 0;
 
-    console.log('[discriminativeSubgraphsSkeleton] subgraphs')
-    console.log(subgraphs);
+    // console.log('[discriminativeSubgraphsSkeleton] subgraphs')
+    // console.log(subgraphs);
 
     // sort the subgraphs. subgraphs with '->' are sorted first
     subgraphs.sort(function(a, b) {
@@ -2647,10 +2647,10 @@ Template.body.helpers({
       }
     });
 
-    console.log(listOfElements);
+    // console.log(listOfElements);
 
     var elementRoles = identifyElementRoles();
-    console.log(elementRoles);
+    // console.log(elementRoles);
 
     var exampleClustersByRole = {};
     
@@ -2659,7 +2659,7 @@ Template.body.helpers({
         return elementRoles[element.node];
       })
       .forEach(function(element) {
-        console.log('[discriminativeSubgraphsSkeleton] going through listOfElements', element);
+        // console.log('[discriminativeSubgraphsSkeleton] going through listOfElements', element);
         var roles = elementRoles[element.node];
         roles.forEach(function(role) {
 
@@ -2680,8 +2680,8 @@ Template.body.helpers({
           exampleClustersByRole[role].push(element);
         });
       });
-    console.log('[discriminativeSubgraphsSkeleton] exampleClustersByRole');
-    console.log(exampleClustersByRole);
+    // console.log('[discriminativeSubgraphsSkeleton] exampleClustersByRole');
+    // console.log(exampleClustersByRole);
 
     // go through method and delcaration, removing a node if they appear in otherNodes in parameter1
     if (exampleClustersByRole['parameter1'] && exampleClustersByRole['method']) {
@@ -2768,7 +2768,7 @@ Template.body.helpers({
       
     }
 
-    console.log('[discriminativeSubgraphsSkeleton] returning', roleList, 'roleList')
+    // console.log('[discriminativeSubgraphsSkeleton] returning', roleList, 'roleList')
     return roleList;
       
   },
@@ -3889,7 +3889,7 @@ var helpers = {
 
     var selector = constructSelectorToFilterBaggedPatterns(computeSelectorFromSkeleton(skeleton));
     
-    console.log('fetchShortestExamples(selector).count()', fetchShortestExamples(selector).count());
+    // console.log('fetchShortestExamples(selector).count()', fetchShortestExamples(selector).count());
     return fetchShortestExamples(selector).count();
   },
   positiveCount: function(optionname) {
@@ -5212,8 +5212,8 @@ function determineChoicesOfCandidates(findCandidateNodes, computeSelectorAfterFe
     subgraphWithHints[subgraph.rawText] = true;
   });
   var subgraphs = findCandidateNodes(subgraphWithHints);
-  console.log('pattern growing candidates');
-  console.log(subgraphs);
+  // console.log('pattern growing candidates');
+  // console.log(subgraphs);
 
   var headerText = {};
   var mapping = {};
@@ -5377,8 +5377,8 @@ function determineChoicesOfCandidates(findCandidateNodes, computeSelectorAfterFe
   console.log('informativenessWeight', informativenessWeight);
   console.log('representativenessWeight', representativenessWeight);
 
-  console.log('[clusteredExamples mapping');
-  console.log(mapping);
+  // console.log('[clusteredExamples mapping');
+  // console.log(mapping);
   for (var key in mapping) {
     var labelledPositiveAndMatchingCount = (mapping[key] || []).filter(function(example) {
       return example['label'] === 'positive';
@@ -5459,8 +5459,8 @@ function determineChoicesOfCandidates(findCandidateNodes, computeSelectorAfterFe
     return b.score - a.score > 0 ? 1 : -1;
   });
   
-  console.log('listOfElements');
-  console.log(listOfElements);
+  // console.log('listOfElements');
+  // console.log(listOfElements);
 
   var elementRoles = identifyElementRoles();
 
@@ -5581,8 +5581,8 @@ function determineChoicesOfCandidates(findCandidateNodes, computeSelectorAfterFe
       });
 
     });
-    console.log('exampleClustersByRole');
-  console.log(exampleClustersByRole);
+    // console.log('exampleClustersByRole');
+  // console.log(exampleClustersByRole);
 
   // enumerate over exampleClustersByRole
   var displayedElementCount=0;
@@ -5607,6 +5607,7 @@ function determineChoicesOfCandidates(findCandidateNodes, computeSelectorAfterFe
     'return': '220',
     'error': '280',
   }
+  exampleClustersByRole['guard'] = []; // quick hack to suppress ugly pattern
   var roleList = [];
   for (var key of ['declaration', 'guard', 'parameter1', 'method', 'exception', 'return',  'error', undefined]) {
     var add = {
