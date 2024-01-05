@@ -49,7 +49,7 @@ sh run_random.sh
 
 ## Tutorial
 
-To go through the tutorial in [study/surf_tutorial.pdf],
+Follow the tutorial in [study/surf_tutorial.pdf](study/surf_tutorial.pdf),
 
 Use the docker image `codesurf/surf`
 Run `docker run -p 3000:3000  -it codesurf/surf /bin/bash`

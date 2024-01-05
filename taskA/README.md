@@ -1,7 +1,7 @@
 In this task, you will inspect examples using the Cipher API. Some examples have been marked as positive or negative. In particular, we are interested in the use of Cipher when instantiated with "AES/GCM/NoPadding”. Your goal is to answer the following questions to understand the distribution of API use and detect more examples similar to the given positive examples.
 
 
-If you are close to running out of time (i.e., 2 mins left), skip (past the dataset comprehension questions) directly to the last part of the task (constructing a pattern). 
+You have 12 mins in total. If you are close to running out of time (i.e., 2 mins left), skip (past the dataset comprehension questions) directly to the last part of the task (constructing a pattern). 
 
 
 From code/meteor_app, run `sh run_cipher.sh`
