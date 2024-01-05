@@ -79,6 +79,9 @@ To perform a what-if analysis, check the checkboxes of a pair of features. Then,
 
 From the what-if analysis, you can contrast the impact of a pair of features.
 
+Finally, select the feature that you believe should be included, and click "Reinfer pattern".
+![](images/select.gif "Select feature")
+
 ## User study tasks
 
 For the Cipher task, go to [taskA](taskA).
