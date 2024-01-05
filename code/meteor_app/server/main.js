@@ -26,7 +26,7 @@ var API = "javax.crypto.Cipher__init";
 APIshortName = process.env.API_SHORTNAME ? process.env.API_SHORTNAME : APIshortName;
 API = process.env.TARGET_API ? process.env.TARGET_API : API;; 
 
-var showStreamlined = process.env.SHOW_STREAMLINED ? process.env.SHOW_STREAMLINED : false;
+var showStreamlined = process.env.SHOW_STREAMLINED ? process.env.SHOW_STREAMLINED : true;
 
 console.log('inserting config');
 
